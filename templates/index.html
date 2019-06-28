@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Untitled Document</title>
+</head>
+<body>
+<table border="1" cellpadding="5" cellspacing="5">
+  <tr>
+    <th>season</th>
+    <th>game_date</th>
+    <th>player name</th>
+    <th>team_abbrev</th>
+    <th>Time on Court</th>
+    <th>FGM</th>
+    <th>FGA</th>
+    <th>TPM</th>
+    <th>TPA</th>
+    <th>FTM</th>
+    <th>FTA</th>
+    <th>OREB</th>
+        {% for row in value %}
+        <tr>
+           <td>{{ row.season }}</td>
+           <td>{{ row.game_date }}</td>
+           <td>{{ row.player_name }}</td>
+           <td>{{ row.team_abbrev }}</td>
+           <td>{{ row.toc_string }}</td>
+           <td>{{ row.fgm }}</td>
+           <td>{{ row.fga }}</td>
+           <td>{{ row.tpm }}</td>
+           <td>{{ row.tpa }}</td>
+           <td>{{ row.ftm }}</td>
+           <td>{{ row.fta }}</td>
+           <td>{{ row.oreb }}</td>
+        {% endfor %}
+        </tr>
+</table>
+</body>
+</html>
