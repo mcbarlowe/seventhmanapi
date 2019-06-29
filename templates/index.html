@@ -1,10 +1,22 @@
 <!doctype html>
 <html>
 <head>
+<style>
+  .input {display:flex;}
+</style>
 <meta charset="utf-8">
 <title>Untitled Document</title>
 </head>
 <body>
+  <div class="input">
+    <form method="POST" action="/">
+      <label for="season">Season:</label>
+      <input type="text" name="season" id="season" value="{{ default_season }}">
+      <label for="player">Player:</label>
+      <input type="text" name="player" id="player" value="{{ default_player }}">
+      <input type="submit" value="Add">
+    </form>
+  </div>
 <table border="1" cellpadding="5" cellspacing="5">
   <tr>
     <th>season</th>
