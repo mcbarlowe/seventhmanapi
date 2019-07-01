@@ -13,7 +13,12 @@
       <label for="season">Season:</label>
       <input type="text" name="season" id="season" value="{{ default_season }}">
       <label for="player">Player:</label>
-      <input type="text" name="player" id="player" value="{{ default_player }}">
+      <input type="text" name="player" id="player" value="{{ default_player }}", list="player_list" autocomplete="off">
+      <datalist id="player_list">
+        {% for player in auto %}
+        <option>{{ player }}</option>
+        {% endfor %}
+      </datalist>
       <input type="submit" value="Add">
     </form>
   </div>
