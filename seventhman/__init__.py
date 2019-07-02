@@ -1,14 +1,12 @@
 '''Creating Flask application factory'''
 
 from flask import Flask
-from models import db
+from flask_sqlalchemy import SQLAlchemy
+app = Flask(__name__)
+app.config.from_object('config')
+db = SQLAlchemy(app)
 
-
-# application factory
-def create_app():
-    '''create flask app'''
-    # create application instance
-    app = Flask(__name__)
-    db.init_app(app)
-
-    return app
+# this has to go after the code above or else it cant import
+# the db class to query the database
+from seventhman.stats.controllers import stats
+app.register_blueprint(stats)
