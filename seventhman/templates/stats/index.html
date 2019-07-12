@@ -25,9 +25,8 @@
 <table border="1" cellpadding="5" cellspacing="5">
   <tr>
     <th>season</th>
-    <th>game_date</th>
     <th>player name</th>
-    <th>team_abbrev</th>
+    <th>Teams</th>
     <th>Time on Court</th>
     <th>FGM</th>
     <th>FGA</th>
@@ -36,12 +35,19 @@
     <th>FTM</th>
     <th>FTA</th>
     <th>OREB</th>
+    <th>DREB</th>
+    <th>AST</th>
+    <th>TOV</th>
+    <th>STL</th>
+    <th>BLK</th>
+    <th>PF</th>
+    <th>POINTS</th>
+    <th>PLUS_MINUS</th>
         {% for row in value %}
         <tr>
            <td>{{ row.season }}</td>
-           <td>{{ row.game_date }}</td>
            <td>{{ row.player_name }}</td>
-           <td>{{ row.team_abbrev }}</td>
+           <td>{{ row.Teams }}</td>
            <td>{{ row.toc_string }}</td>
            <td>{{ row.fgm }}</td>
            <td>{{ row.fga }}</td>
@@ -50,6 +56,14 @@
            <td>{{ row.ftm }}</td>
            <td>{{ row.fta }}</td>
            <td>{{ row.oreb }}</td>
+           <td>{{ row.dreb }}</td>
+           <td>{{ row.ast }}</td>
+           <td>{{ row.tov }}</td>
+           <td>{{ row.stl }}</td>
+           <td>{{ row.blk }}</td>
+           <td>{{ row.pf }}</td>
+           <td>{{ row.points }}</td>
+           <td>{{ row.plus_minus }}</td>
         {% endfor %}
         </tr>
 </table>
