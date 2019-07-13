@@ -27,7 +27,8 @@
     <th>season</th>
     <th>player name</th>
     <th>Teams</th>
-    <th>Time on Court</th>
+    <th>GP</th>
+    <th>MIN</th>
     <th>FGM</th>
     <th>FGA</th>
     <th>TPM</th>
@@ -42,13 +43,14 @@
     <th>BLK</th>
     <th>PF</th>
     <th>POINTS</th>
-    <th>PLUS_MINUS</th>
+    <th>+/-</th>
         {% for row in value %}
         <tr>
            <td>{{ row.season }}</td>
            <td>{{ row.player_name }}</td>
-           <td>{{ row.Teams }}</td>
-           <td>{{ row.toc_string }}</td>
+           <td>{{ row.teams }}</td>
+           <td>{{ row.gp }}</td>
+           <td>{{ row.mins }}</td>
            <td>{{ row.fgm }}</td>
            <td>{{ row.fga }}</td>
            <td>{{ row.tpm }}</td>
