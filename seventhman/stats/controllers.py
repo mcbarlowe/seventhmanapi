@@ -43,8 +43,7 @@ def index():
                               func.round(func.avg(playerbygamestats.blk), 1).label('blk'),
                               func.round(func.avg(playerbygamestats.pf), 1).label('pf'),
                               func.round(func.avg(playerbygamestats.points), 1).label('points'),
-                              func.round(func.avg(playerbygamestats.plus_minus), 1).label('plus_minus')
-                              )\
+                              func.round(func.avg(playerbygamestats.plus_minus), 1).label('plus_minus'))\
                         .group_by(playerbygamestats.player_name,
                                   playerbygamestats.player_id,
                                   playerbygamestats.season).\
