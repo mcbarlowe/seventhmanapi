@@ -10,7 +10,7 @@ stats = Blueprint('stats', __name__, url_prefix='/stats')
 
 @stats.route('api/v1/players/all', methods=['GET'])
 def api_all():
-    print(request.args['player'].split())
+    #print(request.args['player'].split())
     data = playerbygamestats.query.\
             with_entities(playerbygamestats.player_name,
                           playerbygamestats.season,

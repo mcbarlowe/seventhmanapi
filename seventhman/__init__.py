@@ -2,6 +2,7 @@
 
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+from flask_cors import CORS
 
 db = SQLAlchemy()
 
@@ -9,6 +10,7 @@ def create_app():
     '''Initialize the core application'''
 
     app = Flask(__name__)
+    CORS(app)
     app.config.from_object('config')
 
     # initialize pllugins
