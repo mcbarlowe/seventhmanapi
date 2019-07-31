@@ -37,7 +37,7 @@ def api_all():
                     .group_by(playerbygamestats.player_name,
                               playerbygamestats.player_id,
                               playerbygamestats.season).\
-                    filter((playerbygamestats.season == 2019) & (playerbygamestats.toc > 0)).all()
+                    filter((playerbygamestats.toc > 0)).all()
     print(type(data))
     return jsonify(data)
 
