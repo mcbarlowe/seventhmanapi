@@ -38,8 +38,8 @@ def api_all():
                     .group_by(playerbygamestats.player_name,
                               playerbygamestats.player_id,
                               playerbygamestats.season).\
-                    filter((playerbygamestats.toc > 0)).all()
-    print(type(data))
+                    filter((playerbygamestats.toc > 0) & (playerbygamestats.season == 2019)).all()
+    print(jsonify(data))
     return jsonify(data)
 
 @stats.route('api/v1/players/test', methods=['GET'])
@@ -74,7 +74,6 @@ def api_test():
                               playerbygamestats.player_id,
                               playerbygamestats.season).\
                     filter((playerbygamestats.toc > 0) & (playerbygamestats.season == 2017)).all()
-    print(type(data))
     return jsonify(data)
 @stats.errorhandler(404)
 def page_not_found(e):
