@@ -8,7 +8,7 @@ from sqlalchemy import literal_column
 stats = Blueprint('stats', __name__, url_prefix='/stats')
 
 
-@stats.route('api/v1/players/all', methods=['GET'])
+@stats.route('api/v1/players/all/', methods=['GET'])
 def api_all():
     #print(request.args['player'].split())
     data = playerbygamestats.query.\
@@ -38,11 +38,11 @@ def api_all():
                     .group_by(playerbygamestats.player_name,
                               playerbygamestats.player_id,
                               playerbygamestats.season).\
-                    filter((playerbygamestats.toc > 0) & (playerbygamestats.season == 2019)).all()
+                    filter((playerbygamestats.toc > 0)).all()
     print(jsonify(data))
     return jsonify(data)
 
-@stats.route('api/v1/players/submittest', methods=['GET'])
+@stats.route('api/v1/players/submittest/', methods=['GET'])
 def api_test():
     #print(request.args['player'].split())
     data = playerbygamestats.query.\
@@ -76,10 +76,14 @@ def api_test():
                     filter((playerbygamestats.toc > 0) & (playerbygamestats.season == 2017)).all()
     return jsonify(data)
 
-@stats.route('api/v1/players/<player>', methods=['GET'])
+@stats.route('api/v1/players/<player>/', methods=['GET'])
 def api_player(player):
-    season = request.args.get('season', 2019).split(' ')
-    print(request.args.get('season'))
+    season = request.args.get('season', 2019)
+    print(type(str(season)))
+    if ' ' in str(season):
+        season = season.split()
+    else:
+        season = [season]
     toc = request.args.get('toc', 0)
     team = request.args.get('team', 0)
 
