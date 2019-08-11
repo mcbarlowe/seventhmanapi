@@ -1,5 +1,4 @@
 from flask import request, Blueprint, jsonify
-from seventhman import db
 from seventhman.stats.models import playerbygamestats, team_details
 from sqlalchemy.sql import func
 from sqlalchemy.dialects.postgresql import aggregate_order_by
@@ -45,7 +44,9 @@ def api_all():
 
 @stats.route('api/v1/players/submittest/', methods=['GET'])
 def api_test():
-    #print(request.args['player'].split())
+    print(request.args['player'].split(' '))
+    players = request.args['player'].split(' ')
+    #players = [x for x in players if x != '']
     data = playerbygamestats.query.\
             with_entities(playerbygamestats.player_name,
                           playerbygamestats.season,
@@ -74,7 +75,8 @@ def api_test():
                     .group_by(playerbygamestats.player_name,
                               playerbygamestats.player_id,
                               playerbygamestats.season).\
-                    filter((playerbygamestats.toc > 0) & (playerbygamestats.season == 2017)).all()
+                    filter((playerbygamestats.toc > 0) &
+                           (playerbygamestats.player_id.in_(players))).all()
     return jsonify(data)
 
 @stats.route('api/v1/players/<player>/', methods=['GET'])
