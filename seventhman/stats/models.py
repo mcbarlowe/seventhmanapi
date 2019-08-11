@@ -128,7 +128,23 @@ class playerbygamestats(db.Model):
     plus_minus = db.Column(db.Integer)
     __table_args__ = {'schema': 'nba'}
 
-
+class team_details(db.Model):
+    '''
+    Class to create table for team details
+    '''
+    __tablename__ = 'team_details'
+    team_id = db.Column(db.Integer, primary_key=True, nullable=False)
+    abbreviation = db.Column(db.String)
+    nickname = db.Column(db.String)
+    yearfounded = db.Column(db.Integer)
+    city = db.Column(db.String)
+    arena = db.Column(db.String)
+    arena_capacity = db.Column(db.Integer)
+    owner = db.Column(db.String)
+    generalmanager = db.Column(db.String)
+    headcoach = db.Column(db.String)
+    dleagueaffiliation = db.Column(db.Integer)
+    __table_args__ = {'schema': 'nba'}
 # pylint: disable=too-many-statements
 def main():
     pass
