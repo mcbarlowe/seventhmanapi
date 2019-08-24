@@ -85,7 +85,8 @@ def api_test():
             players = request.args['player'].split(' ')
         # parse seasons
         if request.args.get('season', 0) == 0:
-            seasons = playerbygamestats.query.with_entities(playerbygamestats.season).distinct().all()
+            seasons = [playerbygamestats.query.with_entities(func.max(playerbygamestats.season)).all()[0][0]]
+            print(seasons)
         else:
             seasons = request.args['season'].split(' ')
         # parse time on court
