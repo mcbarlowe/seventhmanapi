@@ -156,7 +156,8 @@ def api_all_players():
     '''
     this endpoing returns all the distinct players for the select boxes
     '''
-    data = playerbygamestats.query.with_entities(playerbygamestats.player_id, playerbygamestats.player_name).distinct().all()
+    data = playerbygamestats.query.with_entities(playerbygamestats.player_id, playerbygamestats.player_name).filter(playerbygamestats.toc > 0).distinct().all()
+    data.sort(key= lambda x: x[1])
 
     return jsonify(data)
 @stats.errorhandler(404)
