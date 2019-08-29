@@ -3,6 +3,7 @@ from seventhman.stats.models import playerbygamestats, team_details
 from sqlalchemy.sql import func
 from sqlalchemy.dialects.postgresql import aggregate_order_by
 from sqlalchemy import literal_column
+from sqlalchemy import case, cast, String
 
 stats = Blueprint('stats', __name__, url_prefix='/stats')
 
@@ -142,7 +143,8 @@ def api_player_agg():
     if bool(request.args) == False:
         data = playerbygamestats.query.\
                 with_entities(playerbygamestats.player_name,
-                              func.concat(func.min(playerbygamestats.season),literal_column("'-'"), func.max(playerbygamestats.season)).label('seasons'),
+                              case([(func.min(playerbygamestats.season) == func.max(playerbygamestats.season), cast(func.min(playerbygamestats.season), String))],
+                                   else_ = func.concat(func.min(playerbygamestats.season),literal_column("'-'"), func.max(playerbygamestats.season))).label('season'),
                               playerbygamestats.player_id,
                               func.string_agg(playerbygamestats.team_abbrev.distinct(),
                                               aggregate_order_by(literal_column("'/'"),
@@ -167,7 +169,65 @@ def api_player_agg():
                         .group_by(playerbygamestats.player_name,
                                   playerbygamestats.player_id).\
                         filter((playerbygamestats.toc > 0)).all()
-        return jsonify(data)
+    else:
+        # parse player ids
+        # TODO abstract this into a function cause I will be using similar stuff
+        # TODO for the team api
+        if request.args.get('player', 0) == 0:
+            players = playerbygamestats.query.\
+                    with_entities(playerbygamestats.player_id).\
+                    filter((playerbygamestats.toc > 0)).distinct().all()
+        else:
+            players = request.args['player'].split(' ')
+        # parse seasons
+        if request.args.get('season', 0) == 0:
+            seasons = [playerbygamestats.query.with_entities(func.max(playerbygamestats.season)).all()[0][0]]
+            print(seasons)
+        else:
+            seasons = request.args['season'].split(' ')
+        # parse time on court
+        if request.args.get('toc', 0) == 0:
+            toc = 0
+        else:
+            toc = float(request.args['toc']) * 60
+        # parse teams
+        if request.args.get('team', 0) == 0:
+            teams = team_details.query.with_entities(team_details.team_id).distinct().all()
+        else:
+            teams = request.args['team'].split(' ')
+        data = playerbygamestats.query.\
+                with_entities(playerbygamestats.player_name,
+                              case([(func.min(playerbygamestats.season) == func.max(playerbygamestats.season), cast(func.min(playerbygamestats.season), String))],
+                                   else_ = func.concat(func.min(playerbygamestats.season),literal_column("'-'"), func.max(playerbygamestats.season))).label('season'),
+                              playerbygamestats.player_id,
+                              func.string_agg(playerbygamestats.team_abbrev.distinct(),
+                                              aggregate_order_by(literal_column("'/'"),
+                                                                 playerbygamestats.team_abbrev.desc())).label('teams'),
+                              func.count(playerbygamestats.player_id).label('gp'),
+                              func.round(func.avg(playerbygamestats.toc)/60, 1).label('mins'),
+                              func.round(func.avg(playerbygamestats.fgm), 1).label('fgm'),
+                              func.round(func.avg(playerbygamestats.fga), 1).label('fga'),
+                              func.round(func.avg(playerbygamestats.tpm), 1).label('tpm'),
+                              func.round(func.avg(playerbygamestats.tpa), 1).label('tpa'),
+                              func.round(func.avg(playerbygamestats.ftm), 1).label('ftm'),
+                              func.round(func.avg(playerbygamestats.fta), 1).label('fta'),
+                              func.round(func.avg(playerbygamestats.oreb), 1).label('oreb'),
+                              func.round(func.avg(playerbygamestats.dreb), 1).label('dreb'),
+                              func.round(func.avg(playerbygamestats.ast), 1).label('ast'),
+                              func.round(func.avg(playerbygamestats.tov), 1).label('tov'),
+                              func.round(func.avg(playerbygamestats.stl), 1).label('stl'),
+                              func.round(func.avg(playerbygamestats.blk), 1).label('blk'),
+                              func.round(func.avg(playerbygamestats.pf), 1).label('pf'),
+                              func.round(func.avg(playerbygamestats.points), 1).label('points'),
+                              func.round(func.avg(playerbygamestats.plus_minus), 1).label('plus_minus'))\
+                        .group_by(playerbygamestats.player_name,
+                                  playerbygamestats.player_id).\
+                        filter((playerbygamestats.toc > toc) &
+                               (playerbygamestats.player_id.in_(players)) &
+                               (playerbygamestats.season.in_(seasons)) &
+                               (playerbygamestats.team_id.in_(teams))).all()
+
+    return jsonify(data)
 
 @stats.route('api/v1/teams/all/', methods=['GET'])
 def api_all_teams():
