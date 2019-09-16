@@ -1,5 +1,5 @@
 from flask import request, Blueprint, jsonify
-from seventhman.stats.models import playerbygamestats, team_details
+from seventhman.stats.models import playerbygamestats, team_details, teambygamestats
 from sqlalchemy.sql import func
 from sqlalchemy.dialects.postgresql import aggregate_order_by
 from sqlalchemy import literal_column
@@ -197,8 +197,7 @@ def api_player_agg():
             teams = request.args['team'].split(' ')
         data = playerbygamestats.query.\
                 with_entities(playerbygamestats.player_name,
-                              case([(func.min(playerbygamestats.season) == func.max(playerbygamestats.season), cast(func.min(playerbygamestats.season), String))],
-                                   else_ = func.concat(func.min(playerbygamestats.season),literal_column("'-'"), func.max(playerbygamestats.season))).label('season'),
+                              func.concat(func.min(playerbygamestats.season),literal_column("'-'"), func.max(playerbygamestats.season)).label('season'),
                               playerbygamestats.player_id,
                               func.string_agg(playerbygamestats.team_abbrev.distinct(),
                                               aggregate_order_by(literal_column("'/'"),
@@ -229,6 +228,38 @@ def api_player_agg():
 
     return jsonify(data)
 
+@stats.route('api/v1/teams/', methods=['GET'])
+def api_teams_home():
+    '''
+    this is the api endpoint for the home page of the teams data
+    '''
+
+    max_season = teambygamestats.query.with_entities(func.max(teambygamestats.season)).all()[0][0]
+    data = teambygamestats.query.\
+            with_entities(teambygamestats.team_abbrev,
+                          teambygamestats.season,
+                          func.count(teambygamestats.team_id).label('gp'),
+                          func.round(func.avg(teambygamestats.toc)/60, 1).label('mins'),
+                          func.round(func.avg(teambygamestats.fgm), 1).label('fgm'),
+                          func.round(func.avg(teambygamestats.fga), 1).label('fga'),
+                          func.round(func.avg(teambygamestats.tpm), 1).label('tpm'),
+                          func.round(func.avg(teambygamestats.tpa), 1).label('tpa'),
+                          func.round(func.avg(teambygamestats.ftm), 1).label('ftm'),
+                          func.round(func.avg(teambygamestats.fta), 1).label('fta'),
+                          func.round(func.avg(teambygamestats.oreb), 1).label('oreb'),
+                          func.round(func.avg(teambygamestats.dreb), 1).label('dreb'),
+                          func.round(func.avg(teambygamestats.ast), 1).label('ast'),
+                          func.round(func.avg(teambygamestats.tov), 1).label('tov'),
+                          func.round(func.avg(teambygamestats.stl), 1).label('stl'),
+                          func.round(func.avg(teambygamestats.blk), 1).label('blk'),
+                          func.round(func.avg(teambygamestats.pf), 1).label('pf'),
+                          func.round(func.avg(teambygamestats.plus_minus), 1).label('plus_minus'))\
+                    .group_by(teambygamestats.team_abbrev,
+                              teambygamestats.team_id,
+                              teambygamestats.season).\
+                    filter((teambygamestats.toc > 0) &
+                            (teambygamestats.season == max_season)).all()
+    return jsonify(data)
 @stats.route('api/v1/teams/all/', methods=['GET'])
 def api_all_teams():
     '''

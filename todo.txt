@@ -1,4 +1,4 @@
-1. reconfigure urls to incorporate the api parts
-2. write more SQLAlchemy code to roll up team stats as well
-3. write code to pull shot location data
+2. write the api endpoints for the team stats
+3. refactor a lot probably
+4. write code to pull shot location data
 

@@ -6,7 +6,7 @@ import os
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
 #data base connection
-SQLALCHEMY_DATABASE_URI = os.environ['NBA_CONNECT']
+SQLALCHEMY_DATABASE_URI = os.environ['NBA_CONNECT_DEV']
 SQLALCHEMY_TRACK_MODIFICATIONS = True
 
 #Application threads

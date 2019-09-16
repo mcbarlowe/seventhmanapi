@@ -145,7 +145,43 @@ class team_details(db.Model):
     headcoach = db.Column(db.String)
     dleagueaffiliation = db.Column(db.Integer)
     __table_args__ = {'schema': 'nba'}
-# pylint: disable=too-many-statements
+
+class teambygamestats(db.Model):
+    '''
+    Class to create the teambygamestats table which is each teams
+    box score for every game they played in.
+    '''
+    __tablename__ = 'teambygamestats'
+    key_col = db.Column(db.String, primary_key=True, nullable=False)
+    season = db.Column(db.Integer)
+    game_date = db.Column(db.Date)
+    game_id = db.Column(db.Integer)
+    team_abbrev = db.Column(db.String)
+    team_id = db.Column(db.Integer)
+    toc = db.Column(db.Integer)
+    toc_string = db.Column(db.String)
+    points_for = db.Column(db.Integer)
+    points_against = db.Column(db.Integer)
+    is_win = db.Column(db.Integer)
+    fgm = db.Column(db.Integer)
+    fga = db.Column(db.Integer)
+    tpm = db.Column(db.Integer)
+    tpa = db.Column(db.Integer)
+    ftm = db.Column(db.Integer)
+    fta = db.Column(db.Integer)
+    oreb = db.Column(db.Integer)
+    dreb = db.Column(db.Integer)
+    ast = db.Column(db.Integer)
+    tov = db.Column(db.Integer)
+    stl = db.Column(db.Integer)
+    blk = db.Column(db.Integer)
+    shots_blocked = db.Column(db.Integer)
+    pf = db.Column(db.Integer)
+    pf_drawn = db.Column(db.Integer)
+    points = db.Column(db.Integer)
+    plus_minus = db.Column(db.Integer)
+    is_home = db.Column(db.Integer)
+    __table_args__ = {'schema': 'nba'}
 def main():
     pass
 
