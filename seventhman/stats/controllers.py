@@ -234,7 +234,16 @@ def api_teams_home():
     this is the api endpoint for the home page of the teams data
     '''
 
-    max_season = teambygamestats.query.with_entities(func.max(teambygamestats.season)).all()[0][0]
+    # parse seasons
+    if request.args.get('season', 0) == 0:
+        seasons = [playerbygamestats.query.with_entities(func.max(playerbygamestats.season)).all()[0][0]]
+    else:
+        seasons = request.args['season'].split(' ')
+    # parse teams
+    if request.args.get('team', 0) == 0:
+        teams = team_details.query.with_entities(team_details.team_id).distinct().all()
+    else:
+        teams = request.args['team'].split(' ')
     data = teambygamestats.query.\
             with_entities(teambygamestats.team_abbrev.label('team') ,
                           teambygamestats.season,
@@ -262,8 +271,8 @@ def api_teams_home():
                     .group_by(teambygamestats.team_abbrev,
                               teambygamestats.team_id,
                               teambygamestats.season).\
-                    filter((teambygamestats.toc > 0) &
-                            (teambygamestats.season == max_season)).all()
+                    filter((teambygamestats.season.in_(seasons)) &
+                            (teambygamestats.team_id.in_(teams))).all()
     return jsonify(data)
 @stats.route('api/v1/teams/all/', methods=['GET'])
 def api_all_teams():
