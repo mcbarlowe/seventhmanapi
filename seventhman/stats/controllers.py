@@ -236,9 +236,14 @@ def api_teams_home():
 
     max_season = teambygamestats.query.with_entities(func.max(teambygamestats.season)).all()[0][0]
     data = teambygamestats.query.\
-            with_entities(teambygamestats.team_abbrev,
+            with_entities(teambygamestats.team_abbrev.label('team') ,
                           teambygamestats.season,
                           func.count(teambygamestats.team_id).label('gp'),
+                          func.round(func.avg(teambygamestats.points_for), 1).label('points'),
+                          func.round(func.avg(teambygamestats.points_against), 1).label('points_against'),
+                          func.sum(teambygamestats.is_win).label('wins'),
+                          func.round(func.avg(teambygamestats.pf_drawn), 1).label('fouls_drawn'),
+                          func.round(func.avg(teambygamestats.shots_blocked), 1).label('shots_blocked'),
                           func.round(func.avg(teambygamestats.toc)/60, 1).label('mins'),
                           func.round(func.avg(teambygamestats.fgm), 1).label('fgm'),
                           func.round(func.avg(teambygamestats.fga), 1).label('fga'),
