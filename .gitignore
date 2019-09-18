@@ -2,3 +2,5 @@
 .DS_Store
 eventhmanapi
 seventhmanapi/
+.env
+zappa_settings.json
