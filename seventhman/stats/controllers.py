@@ -3,7 +3,6 @@ from seventhman.stats.models import playerbygamestats, team_details, teambygames
 from sqlalchemy.sql import func
 from sqlalchemy.dialects.postgresql import aggregate_order_by
 from sqlalchemy import literal_column
-from sqlalchemy import case, cast, String
 
 stats = Blueprint('stats', __name__, url_prefix='/stats')
 
@@ -21,18 +20,18 @@ def api_players():
     else:
         players = request.args['player'].split(' ')
     # parse seasons
-    if request.args.get('season', 0) == '':
+    if request.args.get('season', '') == '':
         seasons = [playerbygamestats.query.with_entities(func.max(playerbygamestats.season)).all()[0][0]]
         print(seasons)
     else:
         seasons = request.args['season'].split(' ')
     # parse time on court
-    if request.args.get('toc', 0) == '':
+    if request.args.get('toc', '') == '':
         toc = 1
     else:
         toc = float(request.args['toc']) * 60
     # parse teams
-    if request.args.get('team', 0) == '':
+    if request.args.get('team', '') == '':
         teams = team_details.query.with_entities(team_details.team_id).distinct().all()
     else:
         teams = request.args['team'].split(' ')
@@ -111,12 +110,12 @@ def api_teams():
     '''
 
     # parse seasons
-    if request.args.get('season', 0) == '':
+    if request.args.get('season', '') == '':
         seasons = [playerbygamestats.query.with_entities(func.max(playerbygamestats.season)).all()[0][0]]
     else:
         seasons = request.args['season'].split(' ')
     # parse teams
-    if request.args.get('team', 0) == '':
+    if request.args.get('team', '') == '':
         teams = team_details.query.with_entities(team_details.team_id).distinct().all()
     else:
         teams = request.args['team'].split(' ')
