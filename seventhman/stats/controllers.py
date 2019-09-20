@@ -1,8 +1,8 @@
 from flask import request, Blueprint, jsonify
-from seventhman.stats.models import playerbygamestats, team_details, teambygamestats
+from seventhman.stats.models import playerbygamestats, team_details, teambygamestats, player_details
 from sqlalchemy.sql import func
 from sqlalchemy.dialects.postgresql import aggregate_order_by
-from sqlalchemy import literal_column
+from sqlalchemy import literal_column, case, cast, String
 
 stats = Blueprint('stats', __name__, url_prefix='/stats')
 
@@ -13,7 +13,7 @@ def api_players():
     by season and aggregated
     '''
     #parse players
-    if request.args.get('player', 0) == '':
+    if request.args.get('player', '') == '':
         players = playerbygamestats.query.\
                 with_entities(playerbygamestats.player_id).\
                 filter((playerbygamestats.toc > 0)).distinct().all()
@@ -37,10 +37,11 @@ def api_players():
         teams = request.args['team'].split(' ')
     print(request.args)
     if request.args.get('agg', 'no') == 'no':
-        data = playerbygamestats.query.\
+        data = playerbygamestats.query.join(player_details, player_details.player_id == playerbygamestats.player_id).\
                 with_entities(playerbygamestats.player_name,
                               playerbygamestats.season,
                               playerbygamestats.player_id,
+                              player_details.position,
                               func.string_agg(playerbygamestats.team_abbrev.distinct(),
                                               aggregate_order_by(literal_column("'/'"),
                                                                  playerbygamestats.team_abbrev.desc())).label('teams'),
@@ -62,6 +63,7 @@ def api_players():
                               func.round(func.avg(playerbygamestats.points), 1).label('points'),
                               func.round(func.avg(playerbygamestats.plus_minus), 1).label('plus_minus'))\
                         .group_by(playerbygamestats.player_name,
+                                  player_details.position,
                                   playerbygamestats.player_id,
                                   playerbygamestats.season).\
                         filter((playerbygamestats.toc >= toc) &
@@ -70,10 +72,12 @@ def api_players():
                                (playerbygamestats.team_id.in_(teams))).all()
         return jsonify(data)
     else:
-        data = playerbygamestats.query.\
+        data = playerbygamestats.query.join(player_details, player_details.player_id == playerbygamestats.player_id).\
                 with_entities(playerbygamestats.player_name,
-                              func.concat(func.min(playerbygamestats.season),literal_column("'-'"), func.max(playerbygamestats.season)).label('season'),
+                              case([(func.min(playerbygamestats.season) == func.max(playerbygamestats.season), cast(func.min(playerbygamestats.season), String))],
+                                   else_ = func.concat(func.min(playerbygamestats.season),literal_column("'-'"), func.max(playerbygamestats.season))).label('season'),
                               playerbygamestats.player_id,
+                              player_details.position,
                               func.string_agg(playerbygamestats.team_abbrev.distinct(),
                                               aggregate_order_by(literal_column("'/'"),
                                                                  playerbygamestats.team_abbrev.desc())).label('teams'),
@@ -95,6 +99,7 @@ def api_players():
                               func.round(func.avg(playerbygamestats.points), 1).label('points'),
                               func.round(func.avg(playerbygamestats.plus_minus), 1).label('plus_minus'))\
                         .group_by(playerbygamestats.player_name,
+                                  player_details.position,
                                   playerbygamestats.player_id).\
                         filter((playerbygamestats.toc >= toc) &
                                (playerbygamestats.player_id.in_(players)) &
@@ -154,7 +159,8 @@ def api_teams():
     else:
         data = teambygamestats.query.\
                 with_entities(teambygamestats.team_abbrev.label('team') ,
-                              func.concat(func.min(teambygamestats.season),literal_column("'-'"), func.max(teambygamestats.season)).label('season'),
+                              case([(func.min(teambygamestats.season) == func.max(teambygamestats.season), cast(func.min(teambygamestats.season), String))],
+                                   else_ = func.concat(func.min(teambygamestats.season),literal_column("'-'"), func.max(teambygamestats.season))).label('season'),
                               func.count(teambygamestats.team_id).label('gp'),
                               func.round(func.avg(teambygamestats.points_for), 1).label('points'),
                               func.round(func.avg(teambygamestats.points_against), 1).label('points_against'),

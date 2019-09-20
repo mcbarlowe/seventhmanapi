@@ -182,6 +182,44 @@ class teambygamestats(db.Model):
     plus_minus = db.Column(db.Integer)
     is_home = db.Column(db.Integer)
     __table_args__ = {'schema': 'nba'}
+
+class player_details(db.Model):
+    '''
+    Class to build table with player info
+    '''
+    __tablename__ = 'player_details'
+    player_id = db.Column(db.Integer, primary_key=True, nullable=False)
+    first_name = db.Column(db.String)
+    last_name = db.Column(db.String)
+    display_first_last = db.Column(db.String)
+    display_last_comma_first = db.Column(db.String)
+    display_fi_last = db.Column(db.String)
+    birthdate = db.Column(db.Date)
+    school = db.Column(db.String)
+    country = db.Column(db.String)
+    last_affiliation = db.Column(db.String)
+    height = db.Column(db.String)
+    weight = db.Column(db.String)
+    season_experience = db.Column(db.Integer)
+    jersey_number = db.Column(db.String)
+    position = db.Column(db.String)
+    rosterstatus = db.Column(db.String)
+    team_id = db.Column(db.Integer)
+    team_name = db.Column(db.String)
+    team_abbreviation = db.Column(db.String)
+    team_code = db.Column(db.String)
+    team_city = db.Column(db.String)
+    playercode = db.Column(db.String)
+    from_year = db.Column(db.Integer)
+    to_year = db.Column(db.Integer)
+    dleague_flag = db.Column(db.String)
+    nba_flag = db.Column(db.String)
+    games_played_flag = db.Column(db.String)
+    draft_year = db.Column(db.String)
+    draft_round = db.Column(db.String)
+    draft_number = db.Column(db.String)
+    __table_args__ = {'schema': 'nba'}
+
 def main():
     pass
 
