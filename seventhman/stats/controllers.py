@@ -1,8 +1,8 @@
 from flask import request, Blueprint, jsonify
-from seventhman.stats.models import playerbygamestats, team_details, teambygamestats, player_details
+from seventhman.stats.models import playerbygamestats, team_details, teambygamestats, player_details, player_possessions, team_possessions
 from sqlalchemy.sql import func
 from sqlalchemy.dialects.postgresql import aggregate_order_by
-from sqlalchemy import literal_column, case, cast, String
+from sqlalchemy import literal_column, case, cast, String, and_, Numeric
 
 stats = Blueprint('stats', __name__, url_prefix='/stats')
 
@@ -108,6 +108,137 @@ def api_players():
 
         return jsonify(data)
 
+@stats.route('api/v1/players/possession/', methods=['GET'])
+def api_players_possession():
+    '''
+    api endpoint for possesion rate states
+    '''
+    #parse players
+    if request.args.get('player', '') == '':
+        players = playerbygamestats.query.\
+                with_entities(playerbygamestats.player_id).\
+                filter((playerbygamestats.toc > 0)).distinct().all()
+    else:
+        players = request.args['player'].split(' ')
+    # parse seasons
+    if request.args.get('season', '') == '':
+        seasons = [playerbygamestats.query.with_entities(func.max(playerbygamestats.season)).all()[0][0]]
+        print(seasons)
+    else:
+        seasons = request.args['season'].split(' ')
+    # parse time on court
+    if request.args.get('toc', '') == '':
+        toc = 1
+    else:
+        toc = float(request.args['toc']) * 60
+    # parse teams
+    if request.args.get('team', '') == '':
+        teams = team_details.query.with_entities(team_details.team_id).distinct().all()
+    else:
+        teams = request.args['team'].split(' ')
+    print(request.args)
+    if request.args.get('agg', 'no') == 'no':
+        data = playerbygamestats.query.join(player_details, player_details.player_id == playerbygamestats.player_id).\
+                join(player_possessions, and_(player_possessions.player_id == playerbygamestats.player_id,
+                                             player_possessions.game_id == playerbygamestats.game_id)).\
+                with_entities(playerbygamestats.player_name,
+                              playerbygamestats.season,
+                              playerbygamestats.player_id,
+                              player_details.position,
+                              func.string_agg(playerbygamestats.team_abbrev.distinct(),
+                                              aggregate_order_by(literal_column("'/'"),
+                                                                 playerbygamestats.team_abbrev.desc())).label('teams'),
+                              func.count(playerbygamestats.player_id).label('gp'),
+                              func.round(func.avg(playerbygamestats.toc)/60, 1).label('mins'),
+                              func.round((func.sum(cast(playerbygamestats.fgm, Numeric))/
+                                          func.sum(cast(player_possessions.possessions, Numeric)) * 100), 1).label('fgm'),
+                              func.round((func.sum(cast(playerbygamestats.fga, Numeric))/
+                                          func.sum(cast(player_possessions.possessions, Numeric)) * 100), 1).label('fga'),
+                              func.round(func.sum(cast(playerbygamestats.tpm, Numeric))/
+                                         func.sum(cast(player_possessions.possessions, Numeric)) * 100, 1).label('tpm'),
+                              func.round(func.sum(cast(playerbygamestats.tpa, Numeric))/
+                                         func.sum(cast(player_possessions.possessions, Numeric)) * 100, 1).label('tpa'),
+                              func.round(func.sum(cast(playerbygamestats.ftm, Numeric))/
+                                         func.sum(cast(player_possessions.possessions, Numeric)) * 100, 1).label('ftm'),
+                              func.round(func.sum(cast(playerbygamestats.fta, Numeric))/
+                                         func.sum(cast(player_possessions.possessions, Numeric)) * 100, 1).label('fta'),
+                              func.round(func.sum(cast(playerbygamestats.oreb, Numeric))/
+                                         func.sum(cast(player_possessions.possessions, Numeric)) * 100, 1).label('oreb'),
+                              func.round(func.sum(cast(playerbygamestats.dreb, Numeric))/
+                                         func.sum(cast(player_possessions.possessions, Numeric)) * 100, 1).label('dreb'),
+                              func.round(func.sum(cast(playerbygamestats.ast, Numeric))/
+                                         func.sum(cast(player_possessions.possessions, Numeric)) * 100, 1).label('ast'),
+                              func.round(func.sum(cast(playerbygamestats.tov, Numeric))/
+                                         func.sum(cast(player_possessions.possessions, Numeric)) * 100, 1).label('tov'),
+                              func.round(func.sum(cast(playerbygamestats.stl, Numeric))/
+                                         func.sum(cast(player_possessions.possessions, Numeric)) * 100, 1).label('stl'),
+                              func.round(func.sum(cast(playerbygamestats.blk, Numeric))/
+                                         func.sum(cast(player_possessions.possessions, Numeric)) * 100, 1).label('blk'),
+                              func.round(func.sum(cast(playerbygamestats.pf, Numeric))/
+                                         func.sum(cast(player_possessions.possessions, Numeric)) * 100, 1).label('pf'),
+                              func.round(func.sum(cast(playerbygamestats.points, Numeric))/
+                                         func.sum(cast(player_possessions.possessions, Numeric)) * 100, 1).label('points'))\
+                        .group_by(playerbygamestats.player_name,
+                                  player_details.position,
+                                  playerbygamestats.player_id,
+                                  playerbygamestats.season).\
+                        filter((playerbygamestats.toc >= toc) &
+                               (playerbygamestats.player_id.in_(players)) &
+                               (playerbygamestats.season.in_(seasons)) &
+                               (playerbygamestats.team_id.in_(teams))).all()
+        return jsonify(data)
+    else:
+        data = playerbygamestats.query.join(player_details, player_details.player_id == playerbygamestats.player_id).\
+                join(player_possessions, and_(player_possessions.player_id == playerbygamestats.player_id,
+                                             player_possessions.game_id == playerbygamestats.game_id)).\
+                with_entities(playerbygamestats.player_name,
+                              case([(func.min(playerbygamestats.season) == func.max(playerbygamestats.season), cast(func.min(playerbygamestats.season), String))],
+                                   else_ = func.concat(func.min(playerbygamestats.season),literal_column("'-'"), func.max(playerbygamestats.season))).label('season'),
+                              playerbygamestats.player_id,
+                              player_details.position,
+                              func.string_agg(playerbygamestats.team_abbrev.distinct(),
+                                              aggregate_order_by(literal_column("'/'"),
+                                                                 playerbygamestats.team_abbrev.desc())).label('teams'),
+                              func.count(playerbygamestats.player_id).label('gp'),
+                              func.round(func.avg(playerbygamestats.toc)/60, 1).label('mins'),
+                              func.round((func.sum(cast(playerbygamestats.fgm, Numeric))/
+                                          func.sum(cast(player_possessions.possessions, Numeric)) * 100), 1).label('fgm'),
+                              func.round((func.sum(cast(playerbygamestats.fga, Numeric))/
+                                          func.sum(cast(player_possessions.possessions, Numeric)) * 100), 1).label('fga'),
+                              func.round(func.sum(cast(playerbygamestats.tpm, Numeric))/
+                                         func.sum(cast(player_possessions.possessions, Numeric)) * 100, 1).label('tpm'),
+                              func.round(func.sum(cast(playerbygamestats.tpa, Numeric))/
+                                         func.sum(cast(player_possessions.possessions, Numeric)) * 100, 1).label('tpa'),
+                              func.round(func.sum(cast(playerbygamestats.ftm, Numeric))/
+                                         func.sum(cast(player_possessions.possessions, Numeric)) * 100, 1).label('ftm'),
+                              func.round(func.sum(cast(playerbygamestats.fta, Numeric))/
+                                         func.sum(cast(player_possessions.possessions, Numeric)) * 100, 1).label('fta'),
+                              func.round(func.sum(cast(playerbygamestats.oreb, Numeric))/
+                                         func.sum(cast(player_possessions.possessions, Numeric)) * 100, 1).label('oreb'),
+                              func.round(func.sum(cast(playerbygamestats.dreb, Numeric))/
+                                         func.sum(cast(player_possessions.possessions, Numeric)) * 100, 1).label('dreb'),
+                              func.round(func.sum(cast(playerbygamestats.ast, Numeric))/
+                                         func.sum(cast(player_possessions.possessions, Numeric)) * 100, 1).label('ast'),
+                              func.round(func.sum(cast(playerbygamestats.tov, Numeric))/
+                                         func.sum(cast(player_possessions.possessions, Numeric)) * 100, 1).label('tov'),
+                              func.round(func.sum(cast(playerbygamestats.stl, Numeric))/
+                                         func.sum(cast(player_possessions.possessions, Numeric)) * 100, 1).label('stl'),
+                              func.round(func.sum(cast(playerbygamestats.blk, Numeric))/
+                                         func.sum(cast(player_possessions.possessions, Numeric)) * 100, 1).label('blk'),
+                              func.round(func.sum(cast(playerbygamestats.pf, Numeric))/
+                                         func.sum(cast(player_possessions.possessions, Numeric)) * 100, 1).label('pf'),
+                              func.round(func.sum(cast(playerbygamestats.points, Numeric))/
+                                         func.sum(cast(player_possessions.possessions, Numeric)) * 100, 1).label('points'),
+                              func.round(func.sum(cast(playerbygamestats.fgm, Numeric))/(func.sum(cast(playerbygamestats.fga, Numeric))), 2).label('fg_percentage'))\
+                        .group_by(playerbygamestats.player_name,
+                                  player_details.position,
+                                  playerbygamestats.player_id).\
+                        filter((playerbygamestats.toc >= toc) &
+                               (playerbygamestats.player_id.in_(players)) &
+                               (playerbygamestats.season.in_(seasons)) &
+                               (playerbygamestats.team_id.in_(teams))).all()
+
+        return jsonify(data)
 @stats.route('api/v1/teams/', methods=['GET'])
 def api_teams():
     '''
@@ -116,7 +247,7 @@ def api_teams():
 
     # parse seasons
     if request.args.get('season', '') == '':
-        seasons = [playerbygamestats.query.with_entities(func.max(playerbygamestats.season)).all()[0][0]]
+        seasons = [teambygamestats.query.with_entities(func.max(teambygamestats.season)).all()[0][0]]
     else:
         seasons = request.args['season'].split(' ')
     # parse teams
@@ -189,6 +320,108 @@ def api_teams():
 
     return jsonify(data)
 
+@stats.route('api/v1/teams/possession/', methods=['GET'])
+def api_teams_possession():
+    '''
+    api endpoint for possesion rate states
+    '''
+    # parse seasons
+    if request.args.get('season', '') == '':
+        seasons = [teambygamestats.query.with_entities(func.max(teambygamestats.season)).all()[0][0]]
+    else:
+        seasons = request.args['season'].split(' ')
+    # parse teams
+    if request.args.get('team', '') == '':
+        teams = team_details.query.with_entities(team_details.team_id).distinct().all()
+    else:
+        teams = request.args['team'].split(' ')
+    if request.args.get('agg', 'no') == 'no':
+        data = teambygamestats.query\
+                .join(team_possessions, and_(team_possessions.team_id == teambygamestats.team_id,
+                                               team_possessions.game_id == teambygamestats.game_id)).\
+                with_entities(teambygamestats.team_abbrev,
+                              teambygamestats.season,
+                              teambygamestats.team_id,
+                              func.count(teambygamestats.team_id).label('gp'),
+                              func.round(func.avg(teambygamestats.toc)/60, 1).label('mins'),
+                              func.round((func.sum(cast(teambygamestats.fgm, Numeric))/
+                                          func.sum(cast(team_possessions.possessions, Numeric)) * 100), 1).label('fgm'),
+                              func.round((func.sum(cast(teambygamestats.fga, Numeric))/
+                                          func.sum(cast(team_possessions.possessions, Numeric)) * 100), 1).label('fga'),
+                              func.round(func.sum(cast(teambygamestats.tpm, Numeric))/
+                                         func.sum(cast(team_possessions.possessions, Numeric)) * 100, 1).label('tpm'),
+                              func.round(func.sum(cast(teambygamestats.tpa, Numeric))/
+                                         func.sum(cast(team_possessions.possessions, Numeric)) * 100, 1).label('tpa'),
+                              func.round(func.sum(cast(teambygamestats.ftm, Numeric))/
+                                         func.sum(cast(team_possessions.possessions, Numeric)) * 100, 1).label('ftm'),
+                              func.round(func.sum(cast(teambygamestats.fta, Numeric))/
+                                         func.sum(cast(team_possessions.possessions, Numeric)) * 100, 1).label('fta'),
+                              func.round(func.sum(cast(teambygamestats.oreb, Numeric))/
+                                         func.sum(cast(team_possessions.possessions, Numeric)) * 100, 1).label('oreb'),
+                              func.round(func.sum(cast(teambygamestats.dreb, Numeric))/
+                                         func.sum(cast(team_possessions.possessions, Numeric)) * 100, 1).label('dreb'),
+                              func.round(func.sum(cast(teambygamestats.ast, Numeric))/
+                                         func.sum(cast(team_possessions.possessions, Numeric)) * 100, 1).label('ast'),
+                              func.round(func.sum(cast(teambygamestats.tov, Numeric))/
+                                         func.sum(cast(team_possessions.possessions, Numeric)) * 100, 1).label('tov'),
+                              func.round(func.sum(cast(teambygamestats.stl, Numeric))/
+                                         func.sum(cast(team_possessions.possessions, Numeric)) * 100, 1).label('stl'),
+                              func.round(func.sum(cast(teambygamestats.blk, Numeric))/
+                                         func.sum(cast(team_possessions.possessions, Numeric)) * 100, 1).label('blk'),
+                              func.round(func.sum(cast(teambygamestats.pf, Numeric))/
+                                         func.sum(cast(team_possessions.possessions, Numeric)) * 100, 1).label('pf'),
+                              func.round(func.sum(cast(teambygamestats.points_for, Numeric))/
+                                         func.sum(cast(team_possessions.possessions, Numeric)) * 100, 1).label('points'))\
+                        .group_by(teambygamestats.team_abbrev,
+                                  teambygamestats.team_id,
+                                  teambygamestats.season).\
+                        filter((teambygamestats.season.in_(seasons)) &
+                                (teambygamestats.team_id.in_(teams))).all()
+        return jsonify(data)
+    else:
+        data = teambygamestats.query\
+                .join(team_possessions, and_(team_possessions.team_id == teambygamestats.team_id,
+                                               team_possessions.game_id == teambygamestats.game_id)).\
+                with_entities(teambygamestats.team_abbrev,
+                              case([(func.min(teambygamestats.season) == func.max(teambygamestats.season), cast(func.min(teambygamestats.season), String))],
+                                   else_ = func.concat(func.min(teambygamestats.season),literal_column("'-'"), func.max(teambygamestats.season))).label('season'),
+                              teambygamestats.team_id,
+                              func.count(teambygamestats.team_id).label('gp'),
+                              func.round(func.avg(teambygamestats.toc)/60, 1).label('mins'),
+                              func.round((func.sum(cast(teambygamestats.fgm, Numeric))/
+                                          func.sum(cast(team_possessions.possessions, Numeric)) * 100), 1).label('fgm'),
+                              func.round((func.sum(cast(teambygamestats.fga, Numeric))/
+                                          func.sum(cast(team_possessions.possessions, Numeric)) * 100), 1).label('fga'),
+                              func.round(func.sum(cast(teambygamestats.tpm, Numeric))/
+                                         func.sum(cast(team_possessions.possessions, Numeric)) * 100, 1).label('tpm'),
+                              func.round(func.sum(cast(teambygamestats.tpa, Numeric))/
+                                         func.sum(cast(team_possessions.possessions, Numeric)) * 100, 1).label('tpa'),
+                              func.round(func.sum(cast(teambygamestats.ftm, Numeric))/
+                                         func.sum(cast(team_possessions.possessions, Numeric)) * 100, 1).label('ftm'),
+                              func.round(func.sum(cast(teambygamestats.fta, Numeric))/
+                                         func.sum(cast(team_possessions.possessions, Numeric)) * 100, 1).label('fta'),
+                              func.round(func.sum(cast(teambygamestats.oreb, Numeric))/
+                                         func.sum(cast(team_possessions.possessions, Numeric)) * 100, 1).label('oreb'),
+                              func.round(func.sum(cast(teambygamestats.dreb, Numeric))/
+                                         func.sum(cast(team_possessions.possessions, Numeric)) * 100, 1).label('dreb'),
+                              func.round(func.sum(cast(teambygamestats.ast, Numeric))/
+                                         func.sum(cast(team_possessions.possessions, Numeric)) * 100, 1).label('ast'),
+                              func.round(func.sum(cast(teambygamestats.tov, Numeric))/
+                                         func.sum(cast(team_possessions.possessions, Numeric)) * 100, 1).label('tov'),
+                              func.round(func.sum(cast(teambygamestats.stl, Numeric))/
+                                         func.sum(cast(team_possessions.possessions, Numeric)) * 100, 1).label('stl'),
+                              func.round(func.sum(cast(teambygamestats.blk, Numeric))/
+                                         func.sum(cast(team_possessions.possessions, Numeric)) * 100, 1).label('blk'),
+                              func.round(func.sum(cast(teambygamestats.pf, Numeric))/
+                                         func.sum(cast(team_possessions.possessions, Numeric)) * 100, 1).label('pf'),
+                              func.round(func.sum(cast(teambygamestats.points_for, Numeric))/
+                                         func.sum(cast(team_possessions.possessions, Numeric)) * 100, 1).label('points'))\
+                        .group_by(teambygamestats.team_abbrev,
+                                  teambygamestats.team_id).\
+                        filter((teambygamestats.season.in_(seasons)) &
+                                (teambygamestats.team_id.in_(teams))).all()
+
+        return jsonify(data)
 @stats.route('api/v1/teams/all/', methods=['GET'])
 def api_all_teams():
     '''

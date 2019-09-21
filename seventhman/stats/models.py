@@ -220,6 +220,30 @@ class player_details(db.Model):
     draft_number = db.Column(db.String)
     __table_args__ = {'schema': 'nba'}
 
+class player_possessions(db.Model):
+    '''
+    creates table for player possesions totals
+    '''
+    __tablename__ = 'player_possessions'
+    key_col = db.Column(db.String, primary_key=True, nullable=False)
+    player_id = db.Column(db.Integer)
+    player_name = db.Column(db.String)
+    game_id = db.Column(db.Integer)
+    team_id = db.Column(db.Integer)
+    possessions = db.Column(db.Integer)
+    __table_args__ = {'schema': 'nba'}
+
+class team_possessions(db.Model):
+    '''
+    creates table for player possesions totals
+    '''
+    __tablename__ = 'team_possessions'
+    key_col = db.Column(db.String, primary_key=True, nullable=False)
+    team_id = db.Column(db.Integer)
+    game_id = db.Column(db.Integer)
+    team_abbrev = db.Column(db.String)
+    possessions = db.Column(db.Integer)
+    __table_args__ = {'schema': 'nba'}
 def main():
     pass
 
