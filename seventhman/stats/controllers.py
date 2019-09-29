@@ -1,5 +1,6 @@
 from flask import request, Blueprint, jsonify
-from seventhman.stats.models import playerbygamestats, team_details, teambygamestats, player_details, player_possessions, team_possessions
+from seventhman.stats.models import playerbygamestats, team_details, teambygamestats
+from seventhman.stats.models import player_advanced, team_advanced, player_details, player_possessions, team_possessions
 from sqlalchemy.sql import func
 from sqlalchemy.dialects.postgresql import aggregate_order_by
 from sqlalchemy import literal_column, case, cast, String, and_, Numeric
@@ -422,6 +423,83 @@ def api_teams_possession():
                                 (teambygamestats.team_id.in_(teams))).all()
 
         return jsonify(data)
+
+@stats.route('api/v1/teams/advanced/', methods=['GET'])
+def teams_advanced():
+    '''
+    endpoint for the team advanced stats tables
+    '''
+    # parse seasons
+    if request.args.get('season', '') == '':
+        seasons = [playerbygamestats.query.with_entities(func.max(playerbygamestats.season)).all()[0][0]]
+        print(seasons)
+    else:
+        seasons = request.args['season'].split(' ')
+
+    # parse teams
+    if request.args.get('team', '') == '':
+        teams = team_details.query.with_entities(team_details.team_id).distinct().all()
+    else:
+        teams = request.args['team'].split(' ')
+    data = team_advanced.query.\
+            with_entities(team_advanced.team_abbrev,
+                          team_advanced.season,
+                          team_advanced.team_id,
+                          func.round(team_advanced.efg_percentage * 100, 1).label('efg_percentage'),
+                          func.round(team_advanced.true_shooting_percentage * 100, 1).label('true_shooting_percentage'),
+                          func.round(team_advanced.tov_percentage, 1).label('tov_percentage'),
+                          func.round(team_advanced.oreb_percentage, 1).label('oreb_precentage'),
+                          func.round(team_advanced.ft_per_fga, 1).label('ft_per_fga'),
+                          func.round(team_advanced.opp_efg_percentage, 1).label('opp_efg_percentage'),
+                          func.round(team_advanced.opp_tov_percentage, 1).label('opp_tov_percentage'),
+                          func.round(team_advanced.dreb_percentage, 1).label('dreb_percentage'),
+                          func.round(team_advanced.opp_ft_per_fga, 1).label('opp_ft_per_fga'),
+                          func.round(team_advanced.off_rating, 1).label('off_rating'),
+                          func.round(team_advanced.def_rating, 1).label('def_rating')).\
+                        filter((team_advanced.team_id.in_(teams)) &
+                               (team_advanced.season.in_(seasons))).all()
+    return jsonify(data)
+@stats.route('api/v1/players/advanced/', methods=['GET'])
+def players_advanced():
+    '''
+    endpoint for the player advanced stats tables
+    '''
+    #parse players
+    if request.args.get('player', '') == '':
+        players = playerbygamestats.query.\
+                with_entities(playerbygamestats.player_id).\
+                filter((playerbygamestats.toc > 0)).distinct().all()
+    else:
+        players = request.args['player'].split(' ')
+    # parse seasons
+    if request.args.get('season', '') == '':
+        seasons = [playerbygamestats.query.with_entities(func.max(playerbygamestats.season)).all()[0][0]]
+        print(seasons)
+    else:
+        seasons = request.args['season'].split(' ')
+
+    data = player_advanced.query.join(player_details, player_details.player_id == player_advanced.player_id).\
+            with_entities(player_details.display_first_last,
+                          player_advanced.season,
+                          player_advanced.player_id,
+                          player_details.position,
+                          player_advanced.team_abbrev,
+                          func.round(player_advanced.efg_percentage * 100, 1).label('efg_percentage'),
+                          func.round(player_advanced.true_shooting_percentage * 100, 1).label('true_shooting_percentage'),
+                          func.round(player_advanced.oreb_percentage, 1).label('oreb_percentage'),
+                          func.round(player_advanced.dreb_percentage, 1).label('dreb_percentage'),
+                          func.round(player_advanced.treb_percentage, 1).label('treb_percentage'),
+                          func.round(player_advanced.ast_percentage, 1).label('ast_percentage'),
+                          func.round(player_advanced.stl_percentage, 1).label('stl_percentage'),
+                          func.round(player_advanced.blk_percentage, 1).label('blk_percentage'),
+                          func.round(player_advanced.tov_percentage, 1).label('tov_percentage'),
+                          func.round(player_advanced.usg_percentage, 1).label('usg_percentage'),
+                          func.round(player_advanced.off_rating, 1).label('off_rating'),
+                          func.round(player_advanced.def_rating, 1).label('def_rating')).\
+                        filter((player_advanced.player_id.in_(players)) &
+                               (player_advanced.season.in_(seasons))).all()
+    return jsonify(data)
+
 @stats.route('api/v1/teams/all/', methods=['GET'])
 def api_all_teams():
     '''

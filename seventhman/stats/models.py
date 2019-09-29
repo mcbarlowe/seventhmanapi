@@ -244,6 +244,51 @@ class team_possessions(db.Model):
     team_abbrev = db.Column(db.String)
     possessions = db.Column(db.Integer)
     __table_args__ = {'schema': 'nba'}
+
+class player_advanced(db.Model):
+    '''
+    creates table for player advanced stats
+    '''
+    __tablename__ = 'player_advanced_stats'
+    __table_args__ = {'schema': 'nba'}
+    key_col = db.Column(db.String, primary_key=True, nullable=False)
+    player_id = db.Column(db.Integer)
+    season = db.Column(db.Integer)
+    team_abbrev = db.Column(db.String)
+    efg_percentage = db.Column(db.Numeric)
+    true_shooting_percentage = db.Column(db.Numeric)
+    oreb_percentage = db.Column(db.Numeric)
+    dreb_percentage = db.Column(db.Numeric)
+    treb_percentage = db.Column(db.Numeric)
+    ast_percentage = db.Column(db.Numeric)
+    stl_percentage = db.Column(db.Numeric)
+    blk_percentage = db.Column(db.Numeric)
+    tov_percentage = db.Column(db.Numeric)
+    usg_percentage = db.Column(db.Numeric)
+    off_rating = db.Column(db.Numeric)
+    def_rating = db.Column(db.Numeric)
+
+class team_advanced(db.Model):
+    '''
+    creates table for team advanced stats
+    '''
+    __tablename__ = 'team_advanced_stats'
+    __table_args__ = {'schema': 'nba'}
+    key_col = db.Column(db.String, primary_key=True, nullable=False)
+    team_id = db.Column(db.Integer)
+    team_abbrev = db.Column(db.String)
+    season = db.Column(db.Integer)
+    efg_percentage = db.Column(db.Numeric)
+    true_shooting_percentage = db.Column(db.Numeric)
+    tov_percentage = db.Column(db.Numeric)
+    oreb_percentage = db.Column(db.Numeric)
+    ft_per_fga = db.Column(db.Numeric)
+    opp_efg_percentage = db.Column(db.Numeric)
+    opp_tov_percentage = db.Column(db.Numeric)
+    dreb_percentage = db.Column(db.Numeric)
+    opp_ft_per_fga = db.Column(db.Numeric)
+    off_rating = db.Column(db.Numeric)
+    def_rating = db.Column(db.Numeric)
 def main():
     pass
 
