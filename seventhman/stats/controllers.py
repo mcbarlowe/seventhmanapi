@@ -449,11 +449,11 @@ def teams_advanced():
                           func.round(team_advanced.true_shooting_percentage * 100, 1).label('true_shooting_percentage'),
                           func.round(team_advanced.tov_percentage, 1).label('tov_percentage'),
                           func.round(team_advanced.oreb_percentage, 1).label('oreb_percentage'),
-                          func.round(team_advanced.ft_per_fga, 1).label('ft_per_fga'),
-                          func.round(team_advanced.opp_efg_percentage, 1).label('opp_efg_percentage'),
+                          func.round(team_advanced.ft_per_fga, 2).label('ft_per_fga'),
+                          func.round(team_advanced.opp_efg_percentage * 100, 2).label('opp_efg_percentage'),
                           func.round(team_advanced.opp_tov_percentage, 1).label('opp_tov_percentage'),
                           func.round(team_advanced.dreb_percentage, 1).label('dreb_percentage'),
-                          func.round(team_advanced.opp_ft_per_fga, 1).label('opp_ft_per_fga'),
+                          func.round(team_advanced.opp_ft_per_fga, 2).label('opp_ft_per_fga'),
                           func.round(team_advanced.off_rating, 1).label('off_rating'),
                           func.round(team_advanced.def_rating, 1).label('def_rating')).\
                         filter((team_advanced.team_id.in_(teams)) &
