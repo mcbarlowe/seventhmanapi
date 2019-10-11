@@ -1,5 +1,5 @@
 from flask import request, Blueprint, jsonify
-from seventhman.stats.models import playerbygamestats, team_details, teambygamestats
+from seventhman.stats.models import playerbygamestats, team_details, teambygamestats, player_single_year_rapm
 from seventhman.stats.models import player_advanced, team_advanced, player_details, player_possessions, team_possessions
 from sqlalchemy.sql import func
 from sqlalchemy.dialects.postgresql import aggregate_order_by
@@ -499,6 +499,55 @@ def players_advanced():
                         filter((player_advanced.player_id.in_(players)) &
                                (player_advanced.season.in_(seasons))).all()
     return jsonify(data)
+
+@stats.route('api/v1/players/rapm/', methods=['GET'])
+def player_one_year_rapm():
+    '''
+    endpoint for player single year rapm values
+    '''
+
+    #parse players
+    if request.args.get('player', '') == '':
+        players = playerbygamestats.query.\
+                with_entities(playerbygamestats.player_id).\
+                filter((playerbygamestats.toc > 0)).distinct().all()
+    else:
+        players = request.args['player'].split(' ')
+    # parse seasons
+    if request.args.get('season', '') == '':
+        seasons = [playerbygamestats.query.with_entities(func.max(playerbygamestats.season)).all()[0][0]]
+        print(seasons)
+    else:
+        seasons = request.args['season'].split(' ')
+
+    teams = playerbygamestats.query.with_entities(
+                              playerbygamestats.season,
+                              playerbygamestats.player_id,
+                              func.string_agg(playerbygamestats.team_abbrev.distinct(),
+                                              aggregate_order_by(literal_column("'/'"),
+                                                                 playerbygamestats.team_abbrev.desc())).label('teams')).\
+                        group_by(playerbygamestats.player_id,
+                                  playerbygamestats.season).\
+                        filter((playerbygamestats.player_id.in_(players)) &
+                               (playerbygamestats.season.in_(seasons))).subquery()
+
+    data = player_single_year_rapm.query.join(teams, and_(teams.c.season == player_single_year_rapm.season,
+                                                          teams.c.player_id == player_single_year_rapm.player_id)).\
+                with_entities(player_single_year_rapm.player_name,
+                              player_single_year_rapm.player_id,
+                              teams.c.teams,
+                              player_single_year_rapm.rapm,
+                              player_single_year_rapm.rapm_off,
+                              player_single_year_rapm.rapm_def,
+                              player_single_year_rapm.rapm_off_rank,
+                              player_single_year_rapm.rapm_def_rank,
+                              player_single_year_rapm.rapm_rank,
+                              player_single_year_rapm.season).\
+                        filter((player_single_year_rapm.player_id.in_(players)) &
+                               (player_single_year_rapm.season.in_(seasons))).all()
+
+    return jsonify(data)
+
 
 @stats.route('api/v1/teams/all/', methods=['GET'])
 def api_all_teams():

@@ -289,6 +289,24 @@ class team_advanced(db.Model):
     opp_ft_per_fga = db.Column(db.Numeric)
     off_rating = db.Column(db.Numeric)
     def_rating = db.Column(db.Numeric)
+
+class player_single_year_rapm(db.Model):
+    '''
+    creates table for player advanced stats
+    '''
+    __tablename__ = 'player_single_year_rapm'
+    __table_args__ = {'schema': 'nba'}
+    key_col = db.Column(db.String, primary_key=True, nullable=False)
+    player_id = db.Column(db.Integer)
+    season = db.Column(db.Integer)
+    rapm_off = db.Column(db.Numeric)
+    rapm_def = db.Column(db.Numeric)
+    rapm = db.Column(db.Numeric)
+    rapm_rank = db.Column(db.Integer)
+    rapm_off_rank = db.Column(db.Integer)
+    rapm_def_rank = db.Column(db.Integer)
+    player_name = db.Column(db.String)
+
 def main():
     pass
 
