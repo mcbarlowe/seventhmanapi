@@ -292,13 +292,30 @@ class team_advanced(db.Model):
 
 class player_single_year_rapm(db.Model):
     '''
-    creates table for player advanced stats
+    creates table for player single year rapm stats
     '''
     __tablename__ = 'player_single_year_rapm'
     __table_args__ = {'schema': 'nba'}
     key_col = db.Column(db.String, primary_key=True, nullable=False)
     player_id = db.Column(db.Integer)
     season = db.Column(db.Integer)
+    rapm_off = db.Column(db.Numeric)
+    rapm_def = db.Column(db.Numeric)
+    rapm = db.Column(db.Numeric)
+    rapm_rank = db.Column(db.Integer)
+    rapm_off_rank = db.Column(db.Integer)
+    rapm_def_rank = db.Column(db.Integer)
+    player_name = db.Column(db.String)
+
+class player_multi_year_rapm(db.Model):
+    '''
+    creates table for player multi year rapm stats
+    '''
+    __tablename__ = 'player_multi_year_rapm'
+    __table_args__ = {'schema': 'nba'}
+    key_col = db.Column(db.String, primary_key=True, nullable=False)
+    player_id = db.Column(db.Integer)
+    season = db.Column(db.String)
     rapm_off = db.Column(db.Numeric)
     rapm_def = db.Column(db.Numeric)
     rapm = db.Column(db.Numeric)
