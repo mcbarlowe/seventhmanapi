@@ -617,6 +617,15 @@ def api_all_seasons():
 
     return jsonify(data)
 
+@stats.route('api/v1/multirapmseasons/all/', methods=['GET'])
+def api_rapm_multi_seasons():
+    '''
+    this endpoing returns all the distinct seasons for the select boxes
+    '''
+    data = player_multi_year_rapm.query.with_entities(player_multi_year_rapm.season).distinct().all()
+
+    return jsonify(data)
+
 @stats.route('api/v1/players/distinct/', methods=['GET'])
 def api_all_players():
     '''
