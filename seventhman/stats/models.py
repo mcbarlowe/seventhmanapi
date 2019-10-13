@@ -324,6 +324,22 @@ class player_multi_year_rapm(db.Model):
     rapm_def_rank = db.Column(db.Integer)
     player_name = db.Column(db.String)
 
+class team_single_year_rapm(db.Model):
+    '''
+    creates table for player single year rapm stats
+    '''
+    __tablename__ = 'team_single_year_rapm'
+    __table_args__ = {'schema': 'nba'}
+    key_col = db.Column(db.String, primary_key=True, nullable=False)
+    team_id = db.Column(db.Integer)
+    season = db.Column(db.Integer)
+    rapm_off = db.Column(db.Numeric)
+    rapm_def = db.Column(db.Numeric)
+    rapm = db.Column(db.Numeric)
+    rapm_rank = db.Column(db.Integer)
+    rapm_off_rank = db.Column(db.Integer)
+    rapm_def_rank = db.Column(db.Integer)
+    abbreviation = db.Column(db.String)
 def main():
     pass
 

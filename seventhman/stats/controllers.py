@@ -1,7 +1,7 @@
 from flask import request, Blueprint, jsonify
 from seventhman.stats.models import playerbygamestats, team_details, teambygamestats, player_single_year_rapm
 from seventhman.stats.models import player_advanced, team_advanced, player_details, player_possessions, team_possessions
-from seventhman.stats.models import player_multi_year_rapm
+from seventhman.stats.models import player_multi_year_rapm, team_single_year_rapm
 from sqlalchemy.sql import func
 from sqlalchemy.dialects.postgresql import aggregate_order_by
 from sqlalchemy import literal_column, case, cast, String, and_, Numeric
@@ -549,6 +549,39 @@ def player_one_year_rapm():
 
     return jsonify(data)
 
+@stats.route('api/v1/teams/rapm/', methods=['GET'])
+def team_one_year_rapm():
+    '''
+    endpoint for teams single year rapm values
+    '''
+    # parse seasons
+    if request.args.get('season', '') == '':
+        seasons = [playerbygamestats.query.with_entities(func.max(playerbygamestats.season)).all()[0][0]]
+        print(seasons)
+    else:
+        seasons = request.args['season'].split(' ')
+
+    # parse teams
+    if request.args.get('team', '') == '':
+        teams = team_details.query.with_entities(team_details.team_id).distinct().all()
+    else:
+        teams = request.args['team'].split(' ')
+
+
+    data = team_single_year_rapm.query.\
+            with_entities(team_single_year_rapm.abbreviation,
+                              team_single_year_rapm.team_id,
+                              team_single_year_rapm.rapm,
+                              team_single_year_rapm.rapm_off,
+                              team_single_year_rapm.rapm_def,
+                              team_single_year_rapm.rapm_off_rank,
+                              team_single_year_rapm.rapm_def_rank,
+                              team_single_year_rapm.rapm_rank,
+                              team_single_year_rapm.season).\
+                        filter((team_single_year_rapm.team_id.in_(teams)) &
+                               (team_single_year_rapm.season.in_(seasons))).all()
+
+    return jsonify(data)
 @stats.route('api/v1/players/multirapm/', methods=['GET'])
 def player_three_year_rapm():
     '''
