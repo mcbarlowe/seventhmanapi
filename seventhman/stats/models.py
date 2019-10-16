@@ -340,6 +340,39 @@ class team_single_year_rapm(db.Model):
     rapm_off_rank = db.Column(db.Integer)
     rapm_def_rank = db.Column(db.Integer)
     abbreviation = db.Column(db.String)
+
+class shot_locations(db.Model):
+    '''
+    model for the shot locations table
+    '''
+    __tablename__ = "shot_locations"
+    __table_args__ = {'schema': 'nba'}
+    key_col = db.Column(db.String, primary_key=True, nullable=False)
+    grid_type = db.Column(db.String)
+    game_id = db.Column(db.Integer)
+    game_event_id = db.Column(db.Integer)
+    player_id = db.Column(db.Integer)
+    player_name = db.Column(db.String)
+    team_id = db.Column(db.Integer)
+    team_name = db.Column(db.String)
+    period = db.Column(db.Integer)
+    minutes_remaining = db.Column(db.Integer)
+    seconds_remaining = db.Column(db.Integer)
+    event_type = db.Column(db.String)
+    action_type = db.Column(db.String)
+    shot_type = db.Column(db.String)
+    shot_zone_basic = db.Column(db.String)
+    shot_zone_area = db.Column(db.String)
+    shot_zone_range = db.Column(db.String)
+    shot_distance = db.Column(db.Integer)
+    loc_x = db.Column(db.Integer)
+    loc_y = db.Column(db.Integer)
+    shot_attempted_flag = db.Column(db.Integer)
+    shot_made_flag = db.Column(db.Integer)
+    game_date = db.Column(db.Integer)
+    htm = db.Column(db.String)
+    vtm = db.Column(db.String)
+
 def main():
     pass
 

@@ -1,7 +1,7 @@
 from flask import request, Blueprint, jsonify
 from seventhman.stats.models import playerbygamestats, team_details, teambygamestats, player_single_year_rapm
 from seventhman.stats.models import player_advanced, team_advanced, player_details, player_possessions, team_possessions
-from seventhman.stats.models import player_multi_year_rapm, team_single_year_rapm
+from seventhman.stats.models import player_multi_year_rapm, team_single_year_rapm, shot_locations
 from sqlalchemy.sql import func
 from sqlalchemy.dialects.postgresql import aggregate_order_by
 from sqlalchemy import literal_column, case, cast, String, and_, Numeric
@@ -109,6 +109,39 @@ def api_players():
                                (playerbygamestats.team_id.in_(teams))).all()
 
         return jsonify(data)
+
+@stats.route('api/v1/players/shots/', methods=['GET'])
+def api_player_shot_locations():
+    #parse players
+    if request.args.get('player', '') == '':
+        players = playerbygamestats.query.\
+                with_entities(playerbygamestats.player_id).\
+                filter((playerbygamestats.toc > 0)).distinct().all()
+    else:
+        players = request.args['player'].split(' ')
+    # parse seasons
+    if request.args.get('season', '') == '':
+        seasons = [playerbygamestats.query.with_entities(func.max(playerbygamestats.season)).all()[0][0]]
+        print(seasons)
+    else:
+        seasons = request.args['season'].split(' ')
+    if request.args.get('team', '') == '':
+        teams = team_details.query.with_entities(team_details.team_id).distinct().all()
+    else:
+        teams = request.args['team'].split(' ')
+
+
+    data = shot_locations.query.join(teambygamestats,
+                                     and_(shot_locations.team_id == teambygamestats.team_id,
+                                          shot_locations.game_id == teambygamestats.game_id)).\
+            with_entities(shot_locations.loc_x.label('x'),
+                          shot_locations.loc_y.label('y'),
+                          shot_locations.shot_made_flag.label('made')).\
+                        filter((shot_locations.player_id.in_(players)) &
+                               (teambygamestats.season.in_(seasons)) &
+                               (shot_locations.team_id.in_(teams))).all()
+    return jsonify(data)
+
 
 @stats.route('api/v1/players/possession/', methods=['GET'])
 def api_players_possession():
