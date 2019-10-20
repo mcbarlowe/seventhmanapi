@@ -114,6 +114,8 @@ def api_players():
 def api_player_shot_locations():
     #parse players
     if request.args.get('player', '') == '':
+        players = ['201939']
+    elif request.args.get('player', '') and request.args.get('team' '') != '':
         players = playerbygamestats.query.\
                 with_entities(playerbygamestats.player_id).\
                 filter((playerbygamestats.toc > 0)).distinct().all()
@@ -131,12 +133,38 @@ def api_player_shot_locations():
         teams = request.args['team'].split(' ')
 
 
+    lg_avg = shot_locations.query.join(teambygamestats,
+                                     and_(shot_locations.team_id == teambygamestats.team_id,
+                                          shot_locations.game_id == teambygamestats.game_id)).\
+            with_entities(shot_locations.loc_x.label('lg_x'),
+                          shot_locations.loc_y.label('lg_y'),
+                          func.sum(shot_locations.shot_made_flag).label('lg_made'),
+                          func.count(shot_locations.shot_made_flag).label('lg_attempted')).\
+                        group_by(shot_locations.loc_x,
+                                  shot_locations.loc_y).\
+                        filter(teambygamestats.season.in_(seasons)).subquery()
+
     data = shot_locations.query.join(teambygamestats,
                                      and_(shot_locations.team_id == teambygamestats.team_id,
                                           shot_locations.game_id == teambygamestats.game_id)).\
+            join(lg_avg, and_(lg_avg.c.lg_x == shot_locations.loc_x,
+                               lg_avg.c.lg_y == shot_locations.loc_y)).\
             with_entities(shot_locations.loc_x.label('x'),
                           shot_locations.loc_y.label('y'),
-                          shot_locations.shot_made_flag.label('made')).\
+                          lg_avg.c.lg_made,
+                          lg_avg.c.lg_attempted,
+                          lg_avg.c.lg_x,
+                          lg_avg.c.lg_y,
+                          func.sum(shot_locations.shot_made_flag).label('made'),
+                          func.count(shot_locations.shot_made_flag).label('attempted')
+                          ).\
+                        group_by(shot_locations.loc_x,
+                                  shot_locations.loc_y,
+                                  lg_avg.c.lg_made,
+                                  lg_avg.c.lg_attempted,
+                                  lg_avg.c.lg_x,
+                                  lg_avg.c.lg_y
+                                  ).\
                         filter((shot_locations.player_id.in_(players)) &
                                (teambygamestats.season.in_(seasons)) &
                                (shot_locations.team_id.in_(teams))).all()
