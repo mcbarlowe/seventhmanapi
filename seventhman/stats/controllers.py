@@ -113,9 +113,9 @@ def api_players():
 @stats.route('api/v1/players/shots/', methods=['GET'])
 def api_player_shot_locations():
     #parse players
-    if request.args.get('player', '') == '':
+    if request.args.get('player', '') == '' and request.args.get('team', '') == '':
         players = ['201939']
-    elif request.args.get('player', '') and request.args.get('team' '') != '':
+    elif request.args.get('player', '')  == '' and request.args.get('team', '') != '':
         players = playerbygamestats.query.\
                 with_entities(playerbygamestats.player_id).\
                 filter((playerbygamestats.toc > 0)).distinct().all()
@@ -124,7 +124,6 @@ def api_player_shot_locations():
     # parse seasons
     if request.args.get('season', '') == '':
         seasons = [playerbygamestats.query.with_entities(func.max(playerbygamestats.season)).all()[0][0]]
-        print(seasons)
     else:
         seasons = request.args['season'].split(' ')
     if request.args.get('team', '') == '':
@@ -132,7 +131,9 @@ def api_player_shot_locations():
     else:
         teams = request.args['team'].split(' ')
 
-
+    print(players)
+    print(seasons)
+    print(teams)
     lg_avg = shot_locations.query.join(teambygamestats,
                                      and_(shot_locations.team_id == teambygamestats.team_id,
                                           shot_locations.game_id == teambygamestats.game_id)).\
