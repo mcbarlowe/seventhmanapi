@@ -131,9 +131,6 @@ def api_player_shot_locations():
     else:
         teams = request.args['team'].split(' ')
 
-    print(players)
-    print(seasons)
-    print(teams)
     lg_avg = shot_locations.query.join(teambygamestats,
                                      and_(shot_locations.team_id == teambygamestats.team_id,
                                           shot_locations.game_id == teambygamestats.game_id)).\
