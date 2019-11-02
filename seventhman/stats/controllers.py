@@ -708,7 +708,7 @@ def api_all_seasons():
     '''
     this endpoing returns all the distinct seasons for the select boxes
     '''
-    data = playerbygamestats.query.with_entities(playerbygamestats.season).distinct().all()
+    data = playerbygamestats.query.with_entities(playerbygamestats.season).distinct().order_by(playerbygamestats.season.desc()).all()
 
     return jsonify(data)
 
