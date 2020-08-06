@@ -1,4 +1,0 @@
-2. write the api endpoints for the team stats
-3. refactor a lot probably
-4. write code to pull shot location data
-

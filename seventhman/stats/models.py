@@ -1,14 +1,18 @@
-'''
+"""
 Initialize database ORM models for flask app
-'''
-#this is initialized in the __init__.py file for the whole website app
+"""
+# this is initialized in the __init__.py file for the whole website app
 from seventhman import db
+from sqlalchemy.orm import column_property
+from sqlalchemy import cast, String
+
 
 class Pbp(db.Model):
-    '''
+    """
     Class to create the play by play table
-    '''
-    __tablename__ = 'pbp'
+    """
+
+    __tablename__ = "pbp"
     key_col = db.Column(db.String, primary_key=True, nullable=False)
     game_id = db.Column(db.Integer, index=True)
     eventnum = db.Column(db.Integer)
@@ -92,23 +96,21 @@ class Pbp(db.Model):
     away_player_5 = db.Column(db.String)
     away_player_5_id = db.Column(db.Integer)
 
-    __table_args__ = {'schema': 'nba'}
+    __table_args__ = {"schema": "nba"}
 
 
 class playerbygamestats(db.Model):
-    '''
+    """
     Class to create the playerbygamestats table which is each players
     box score for every game they played in.
-    '''
-    __tablename__ = 'playerbygamestats'
-    key_col = db.Column(db.String, primary_key=True, nullable=False)
-    season = db.Column(db.Integer)
-    game_date = db.Column(db.Date)
-    game_id = db.Column(db.Integer)
-    player_id = db.Column(db.Integer)
-    player_name = db.Column(db.String)
-    team_abbrev = db.Column(db.String)
+    """
+
+    __tablename__ = "playerbygamestats"
+    __table_args__ = {"schema": "nba"}
+    player_id = db.Column(db.Integer, primary_key=True, nullable=False)
     team_id = db.Column(db.Integer)
+    game_id = db.Column(db.Integer, primary_key=True, nullable=False)
+    game_date = db.Column(db.Date)
     toc = db.Column(db.Integer)
     toc_string = db.Column(db.String)
     fgm = db.Column(db.Integer)
@@ -117,22 +119,33 @@ class playerbygamestats(db.Model):
     tpa = db.Column(db.Integer)
     ftm = db.Column(db.Integer)
     fta = db.Column(db.Integer)
+    points = db.Column(db.Integer)
+    ast = db.Column(db.Integer)
     oreb = db.Column(db.Integer)
     dreb = db.Column(db.Integer)
-    ast = db.Column(db.Integer)
-    tov = db.Column(db.Integer)
-    stl = db.Column(db.Integer)
     blk = db.Column(db.Integer)
+    tov = db.Column(db.Integer)
     pf = db.Column(db.Integer)
-    points = db.Column(db.Integer)
+    stl = db.Column(db.Integer)
+    plus = db.Column(db.Integer)
+    minus = db.Column(db.Integer)
     plus_minus = db.Column(db.Integer)
-    __table_args__ = {'schema': 'nba'}
+    player_name = db.Column(db.String)
+    possessions = db.Column(db.Integer)
+    is_home = db.Column(db.Integer)
+    team_abbrev = db.Column(db.String)
+    opponent = db.Column(db.Integer)
+    opponent_abbrev = db.Column(db.String)
+    season = db.Column(db.Integer, primary_key=True, nullable=False)
+
 
 class team_details(db.Model):
-    '''
+    """
     Class to create table for team details
-    '''
-    __tablename__ = 'team_details'
+    """
+
+    __tablename__ = "team_details"
+    __table_args__ = {"schema": "nba"}
     team_id = db.Column(db.Integer, primary_key=True, nullable=False)
     abbreviation = db.Column(db.String)
     nickname = db.Column(db.String)
@@ -144,50 +157,55 @@ class team_details(db.Model):
     generalmanager = db.Column(db.String)
     headcoach = db.Column(db.String)
     dleagueaffiliation = db.Column(db.Integer)
-    __table_args__ = {'schema': 'nba'}
+
 
 class teambygamestats(db.Model):
-    '''
+    """
     Class to create the teambygamestats table which is each teams
     box score for every game they played in.
-    '''
-    __tablename__ = 'teambygamestats'
-    key_col = db.Column(db.String, primary_key=True, nullable=False)
-    season = db.Column(db.Integer)
-    game_date = db.Column(db.Date)
-    game_id = db.Column(db.Integer)
-    team_abbrev = db.Column(db.String)
-    team_id = db.Column(db.Integer)
-    toc = db.Column(db.Integer)
-    toc_string = db.Column(db.String)
+    """
+
+    __tablename__ = "teambygamestats"
+    __table_args__ = {"schema": "nba"}
+    team_id = db.Column(db.Integer, primary_key=True, nullable=False)
+    game_id = db.Column(db.Integer, primary_key=True, nullable=False)
     points_for = db.Column(db.Integer)
-    points_against = db.Column(db.Integer)
-    is_win = db.Column(db.Integer)
-    fgm = db.Column(db.Integer)
-    fga = db.Column(db.Integer)
-    tpm = db.Column(db.Integer)
     tpa = db.Column(db.Integer)
-    ftm = db.Column(db.Integer)
+    fga = db.Column(db.Integer)
     fta = db.Column(db.Integer)
-    oreb = db.Column(db.Integer)
-    dreb = db.Column(db.Integer)
-    ast = db.Column(db.Integer)
-    tov = db.Column(db.Integer)
-    stl = db.Column(db.Integer)
+    fgm = db.Column(db.Integer)
+    tpm = db.Column(db.Integer)
+    ftm = db.Column(db.Integer)
     blk = db.Column(db.Integer)
     shots_blocked = db.Column(db.Integer)
+    ast = db.Column(db.Integer)
+    oreb = db.Column(db.Integer)
+    dreb = db.Column(db.Integer)
+    tov = db.Column(db.Integer)
     pf = db.Column(db.Integer)
-    pf_drawn = db.Column(db.Integer)
-    points = db.Column(db.Integer)
+    fouls_drawn = db.Column(db.Integer)
+    stl = db.Column(db.Integer)
+    points_against = db.Column(db.Integer)
     plus_minus = db.Column(db.Integer)
+    team_abbrev = db.Column(db.String)
+    possessions = db.Column(db.Integer)
+    game_date = db.Column(db.Date)
+    season = db.Column(db.Integer, primary_key=True, nullable=False)
+    toc = db.Column(db.Integer)
+    toc_string = db.Column(db.String)
     is_home = db.Column(db.Integer)
-    __table_args__ = {'schema': 'nba'}
+    is_win = db.Column(db.Integer)
+    opponent = db.Column(db.Integer)
+    opponent_abbrev = db.Column(db.String)
+
 
 class player_details(db.Model):
-    '''
+    """
     Class to build table with player info
-    '''
-    __tablename__ = 'player_details'
+    """
+
+    __tablename__ = "player_details"
+    __table_args__ = {"schema": "nba"}
     player_id = db.Column(db.Integer, primary_key=True, nullable=False)
     first_name = db.Column(db.String)
     last_name = db.Column(db.String)
@@ -218,87 +236,67 @@ class player_details(db.Model):
     draft_year = db.Column(db.String)
     draft_round = db.Column(db.String)
     draft_number = db.Column(db.String)
-    __table_args__ = {'schema': 'nba'}
 
-class player_possessions(db.Model):
-    '''
-    creates table for player possesions totals
-    '''
-    __tablename__ = 'player_possessions'
-    key_col = db.Column(db.String, primary_key=True, nullable=False)
-    player_id = db.Column(db.Integer)
-    player_name = db.Column(db.String)
-    game_id = db.Column(db.Integer)
-    team_id = db.Column(db.Integer)
-    possessions = db.Column(db.Integer)
-    __table_args__ = {'schema': 'nba'}
-
-class team_possessions(db.Model):
-    '''
-    creates table for player possesions totals
-    '''
-    __tablename__ = 'team_possessions'
-    key_col = db.Column(db.String, primary_key=True, nullable=False)
-    team_id = db.Column(db.Integer)
-    game_id = db.Column(db.Integer)
-    team_abbrev = db.Column(db.String)
-    possessions = db.Column(db.Integer)
-    __table_args__ = {'schema': 'nba'}
 
 class player_advanced(db.Model):
-    '''
+    """
     creates table for player advanced stats
-    '''
-    __tablename__ = 'player_advanced_stats'
-    __table_args__ = {'schema': 'nba'}
-    key_col = db.Column(db.String, primary_key=True, nullable=False)
-    player_id = db.Column(db.Integer)
-    season = db.Column(db.Integer)
+    """
+
+    __tablename__ = "player_advanced_stats"
+    __table_args__ = {"schema": "nba"}
+    player_id = db.Column(db.Integer, primary_key=True, nullable=False)
+    player_name = db.Column(db.String)
     team_abbrev = db.Column(db.String)
-    efg_percentage = db.Column(db.Numeric)
-    true_shooting_percentage = db.Column(db.Numeric)
-    oreb_percentage = db.Column(db.Numeric)
-    dreb_percentage = db.Column(db.Numeric)
-    treb_percentage = db.Column(db.Numeric)
-    ast_percentage = db.Column(db.Numeric)
-    stl_percentage = db.Column(db.Numeric)
-    blk_percentage = db.Column(db.Numeric)
-    tov_percentage = db.Column(db.Numeric)
-    usg_percentage = db.Column(db.Numeric)
+    gp = db.Column(db.Integer)
     off_rating = db.Column(db.Numeric)
     def_rating = db.Column(db.Numeric)
+    efg_percent = db.Column(db.Numeric)
+    ts_percent = db.Column(db.Numeric)
+    oreb_percent = db.Column(db.Numeric)
+    dreb_percent = db.Column(db.Numeric)
+    ast_percentage = db.Column(db.Numeric)
+    blk_percentage = db.Column(db.Numeric)
+    stl_percentage = db.Column(db.Numeric)
+    tov_percentage = db.Column(db.Numeric)
+    usg_percentage = db.Column(db.Numeric)
+    min_season = db.Column(db.Integer, primary_key=True, nullable=False)
+    max_season = db.Column(db.Integer, primary_key=True, nullable=False)
+
 
 class team_advanced(db.Model):
-    '''
+    """
     creates table for team advanced stats
-    '''
-    __tablename__ = 'team_advanced_stats'
-    __table_args__ = {'schema': 'nba'}
-    key_col = db.Column(db.String, primary_key=True, nullable=False)
-    team_id = db.Column(db.Integer)
+    """
+
+    __tablename__ = "team_advanced_stats"
+    __table_args__ = {"schema": "nba"}
+    team_id = db.Column(db.Integer, primary_key=True, nullable=False)
     team_abbrev = db.Column(db.String)
-    season = db.Column(db.Integer)
+    gp = db.Column(db.Integer)
     efg_percentage = db.Column(db.Numeric)
     true_shooting_percentage = db.Column(db.Numeric)
-    tov_percentage = db.Column(db.Numeric)
     oreb_percentage = db.Column(db.Numeric)
     ft_per_fga = db.Column(db.Numeric)
+    tov_percentage = db.Column(db.Numeric)
     opp_efg_percentage = db.Column(db.Numeric)
     opp_tov_percentage = db.Column(db.Numeric)
     dreb_percentage = db.Column(db.Numeric)
     opp_ft_per_fga = db.Column(db.Numeric)
     off_rating = db.Column(db.Numeric)
     def_rating = db.Column(db.Numeric)
+    min_season = db.Column(db.Integer, primary_key=True, nullable=False)
+    max_season = db.Column(db.Integer)
+
 
 class player_single_year_rapm(db.Model):
-    '''
+    """
     creates table for player single year rapm stats
-    '''
-    __tablename__ = 'player_single_year_rapm'
-    __table_args__ = {'schema': 'nba'}
-    key_col = db.Column(db.String, primary_key=True, nullable=False)
-    player_id = db.Column(db.Integer)
-    season = db.Column(db.Integer)
+    """
+
+    __tablename__ = "player_single_year_rapm"
+    __table_args__ = {"schema": "nba"}
+    player_id = db.Column(db.Integer, primary_key=True, nullable=False)
     rapm_off = db.Column(db.Numeric)
     rapm_def = db.Column(db.Numeric)
     rapm = db.Column(db.Numeric)
@@ -306,16 +304,18 @@ class player_single_year_rapm(db.Model):
     rapm_off_rank = db.Column(db.Integer)
     rapm_def_rank = db.Column(db.Integer)
     player_name = db.Column(db.String)
+    min_season = db.Column(db.Integer, primary_key=True, nullable=False)
+    max_season = db.Column(db.Integer)
+
 
 class player_multi_year_rapm(db.Model):
-    '''
+    """
     creates table for player multi year rapm stats
-    '''
-    __tablename__ = 'player_multi_year_rapm'
-    __table_args__ = {'schema': 'nba'}
-    key_col = db.Column(db.String, primary_key=True, nullable=False)
-    player_id = db.Column(db.Integer)
-    season = db.Column(db.String)
+    """
+
+    __tablename__ = "player_three_year_rapm"
+    __table_args__ = {"schema": "nba"}
+    player_id = db.Column(db.Integer, primary_key=True, nullable=False)
     rapm_off = db.Column(db.Numeric)
     rapm_def = db.Column(db.Numeric)
     rapm = db.Column(db.Numeric)
@@ -323,30 +323,37 @@ class player_multi_year_rapm(db.Model):
     rapm_off_rank = db.Column(db.Integer)
     rapm_def_rank = db.Column(db.Integer)
     player_name = db.Column(db.String)
+    min_season = db.Column(db.Integer, primary_key=True, nullable=False)
+    max_season = db.Column(db.Integer, primary_key=True, nullable=False)
+    seasons = column_property(cast(min_season, String) + "-" + cast(max_season, String))
+
 
 class team_single_year_rapm(db.Model):
-    '''
+    """
     creates table for player single year rapm stats
-    '''
-    __tablename__ = 'team_single_year_rapm'
-    __table_args__ = {'schema': 'nba'}
-    key_col = db.Column(db.String, primary_key=True, nullable=False)
-    team_id = db.Column(db.Integer)
-    season = db.Column(db.Integer)
+    """
+
+    __tablename__ = "team_single_year_rapm"
+    __table_args__ = {"schema": "nba"}
+    team_id = db.Column(db.Integer, primary_key=True, nullable=False)
     rapm_off = db.Column(db.Numeric)
     rapm_def = db.Column(db.Numeric)
     rapm = db.Column(db.Numeric)
     rapm_rank = db.Column(db.Integer)
     rapm_off_rank = db.Column(db.Integer)
     rapm_def_rank = db.Column(db.Integer)
-    abbreviation = db.Column(db.String)
+    team_abbrev = db.Column(db.String)
+    min_season = db.Column(db.Integer, primary_key=True, nullable=False)
+    max_season = db.Column(db.Integer)
+
 
 class shot_locations(db.Model):
-    '''
+    """
     model for the shot locations table
-    '''
+    """
+
     __tablename__ = "shot_locations"
-    __table_args__ = {'schema': 'nba'}
+    __table_args__ = {"schema": "nba"}
     key_col = db.Column(db.String, primary_key=True, nullable=False)
     grid_type = db.Column(db.String)
     game_id = db.Column(db.Integer)
@@ -373,9 +380,10 @@ class shot_locations(db.Model):
     htm = db.Column(db.String)
     vtm = db.Column(db.String)
 
+
 def main():
     pass
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
