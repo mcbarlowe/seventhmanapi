@@ -1270,7 +1270,7 @@ def player_three_year_rapm():
             player_multi_year_rapm.rapm_rank,
             player_multi_year_rapm.min_season,
             player_multi_year_rapm.max_season,
-            player_multi_year_rapm.seasons,
+            player_multi_year_rapm.seasons.label('season'),
         )
         .filter(
             (player_multi_year_rapm.player_id.in_(players))
