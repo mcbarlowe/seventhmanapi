@@ -1,7 +1,9 @@
+## We have updated to version 2.0! This means the API will return stats from seasons dating all the way back from 19992000
+
 # Seventhman.net API
 
-All endpoints will start with `https://stats.theseventhman.net/stats/api/v1/` an
-example link looks like this `https://stats.theseventhman.net/stats/api/v1/players/?&season=2020&player=&toc=&team=&agg=no`
+All endpoints will start with `https://stats.theseventhman.net/stats/api/v2/` an
+example link looks like this `https://stats.theseventhman.net/stats/api/v2/players/?&season=2020&player=&toc=&team=&agg=no`
 
 # players/
 
@@ -82,7 +84,8 @@ Returns player advanced stats only calculated at a season level
 # players/multirapm/
 
 * player - filters results by player id
-* season - filtesr results by 3 year season blocks so 2017, 2018, 2019 will be 2017-19
+* min_season - pass the first season in the three year block you want to pull back.
+If you want the RAPM for 2018, 2019, 2020 three year span then pass 2018.
 
 # teams/all/
 

@@ -1023,13 +1023,33 @@ def players_advanced():
                 func.max(playerbygamestats.season)
             ).all()[0][0]
         ]
-        print(seasons)
     else:
         seasons = request.args["season"].split(" ")
+
+    gp = (
+        playerbygamestats.query.with_entities(
+            playerbygamestats.player_id,
+            playerbygamestats.season,
+            func.count().label("gp"),
+        )
+        .group_by(playerbygamestats.player_id, playerbygamestats.season)
+        .filter(
+            (playerbygamestats.player_id.in_(players))
+            & (playerbygamestats.season.in_(seasons))
+        )
+        .subquery()
+    )
 
     data = (
         player_advanced.query.join(
             player_details, player_details.player_id == player_advanced.player_id
+        )
+        .join(
+            gp,
+            and_(
+                gp.c.player_id == player_advanced.player_id,
+                gp.c.season == player_advanced.min_season,
+            ),
         )
         .with_entities(
             player_details.display_first_last,
@@ -1037,6 +1057,7 @@ def players_advanced():
             player_advanced.player_id,
             player_details.position,
             player_advanced.team_abbrev,
+            gp.c.gp,
             func.round(cast(player_advanced.efg_percent * 100, Numeric), 1).label(
                 "efg_percentage"
             ),
