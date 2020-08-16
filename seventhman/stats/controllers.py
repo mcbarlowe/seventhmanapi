@@ -10,6 +10,7 @@ from seventhman.stats.models import (
     player_multi_year_rapm,
     team_single_year_rapm,
     shot_locations,
+    seasons
 )
 from sqlalchemy.sql import func
 from sqlalchemy.dialects.postgresql import aggregate_order_by
@@ -1256,27 +1257,20 @@ def player_three_year_rapm():
         team_seasons = list(range(int(min_season[0]), int(min_season[0]) + 3))
 
     teams = (
-        playerbygamestats.query.with_entities(
-            playerbygamestats.player_id,
-            func.count().label("gp"),
-            func.string_agg(
-                playerbygamestats.team_abbrev.distinct(),
-                aggregate_order_by(
-                    literal_column("'/'"), playerbygamestats.team_abbrev.desc()
-                ),
-            ).label("teams"),
+        seasons.query.with_entities(
+            seasons.player_id, seasons.gp, seasons.teams, seasons.min_season
         )
-        .group_by(playerbygamestats.player_id)
-        .filter(
-            (playerbygamestats.player_id.in_(players))
-            & (playerbygamestats.season.in_(team_seasons))
-        )
+        .filter((seasons.player_id.in_(players)) & (seasons.min_season.in_(min_season)))
         .subquery()
     )
 
     data = (
         player_multi_year_rapm.query.join(
-            teams, teams.c.player_id == player_multi_year_rapm.player_id
+            teams,
+            and_(
+                teams.c.player_id == player_multi_year_rapm.player_id,
+                teams.c.min_season == player_multi_year_rapm.min_season,
+            ),
         )
         .with_entities(
             player_multi_year_rapm.player_name,

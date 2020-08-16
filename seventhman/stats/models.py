@@ -381,6 +381,20 @@ class shot_locations(db.Model):
     vtm = db.Column(db.String)
 
 
+class seasons(db.Model):
+    """
+    player seasons for multi rapm regressions and gp
+    """
+
+    __tablename__ = "player_seasons"
+    __table_args__ = {"schema": "nba"}
+    player_id = db.Column(db.Integer, primary_key=True)
+    gp = db.Column(db.Integer, primary_key=True)
+    teams = db.Column(db.String, primary_key=True)
+    seasons = db.Column(db.String, primary_key=True)
+    min_season = db.Column(db.Integer, primary_key=True)
+
+
 def main():
     pass
 
