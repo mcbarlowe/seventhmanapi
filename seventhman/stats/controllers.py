@@ -1504,7 +1504,6 @@ def players_advanced():
     return jsonify(data)
 
 
-# TODO materialize view this one as well
 @stats.route("players/rapm/", methods=["GET"])
 def player_one_year_rapm():
     """
@@ -1655,7 +1654,6 @@ def team_one_year_rapm():
     return jsonify(data)
 
 
-# TODO convert this to use a materialized view
 @stats.route("players/multirapm/", methods=["GET"])
 def player_three_year_rapm():
     """
@@ -1819,10 +1817,14 @@ def api_all_players():
     """
     this endpoing returns all the distinct players for the select boxes
     """
-    data = player_details.query.with_entities(
-        player_details.player_id, player_details.display_first_last
-    ).all()
-    data.sort(key=lambda x: x[1])
+    data = (
+        player_details.query.with_entities(
+            player_details.player_id,
+            player_details.display_first_last.label("player_name"),
+        )
+        .order_by(player_details.display_first_last)
+        .all()
+    )
 
     return jsonify(data)
 
