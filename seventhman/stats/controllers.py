@@ -60,9 +60,6 @@ def api_players():
     this is the main players api endpoint for regular counting stats both
     by season and aggregated
     """
-    # TODO create an API endpoint model class for each of my endpoints that can
-    # be passed the args and returned the query results Matt Barlowe 2020-04-11
-
     # parse players
     if request.args.get("player", "") == "":
         players = None
@@ -322,6 +319,7 @@ def api_players():
         return jsonify(data)
 
 
+# TODO rework this to be faster as well
 @stats.route("/players/shots/", methods=["GET"])
 def api_player_shot_locations():
     # parse players
@@ -437,7 +435,8 @@ def api_players_possession():
         if request.args.get("agg", "no") == "no":
             data = (
                 playerbygamestats.query.join(
-                    player_details, player_details.player_id == playerbygamestats.player_id
+                    player_details,
+                    player_details.player_id == playerbygamestats.player_id,
                 )
                 .with_entities(
                     playerbygamestats.player_name,
@@ -561,7 +560,8 @@ def api_players_possession():
         else:
             data = (
                 playerbygamestats.query.join(
-                    player_details, player_details.player_id == playerbygamestats.player_id
+                    player_details,
+                    player_details.player_id == playerbygamestats.player_id,
                 )
                 .with_entities(
                     playerbygamestats.player_name,
@@ -700,7 +700,8 @@ def api_players_possession():
         if request.args.get("agg", "no") == "no":
             data = (
                 playerbygamestats.query.join(
-                    player_details, player_details.player_id == playerbygamestats.player_id
+                    player_details,
+                    player_details.player_id == playerbygamestats.player_id,
                 )
                 .with_entities(
                     playerbygamestats.player_name,
@@ -823,7 +824,8 @@ def api_players_possession():
         else:
             data = (
                 playerbygamestats.query.join(
-                    player_details, player_details.player_id == playerbygamestats.player_id
+                    player_details,
+                    player_details.player_id == playerbygamestats.player_id,
                 )
                 .with_entities(
                     playerbygamestats.player_name,
@@ -957,7 +959,6 @@ def api_players_possession():
                 )
                 .all()
             )
-
 
         return jsonify(data)
 
@@ -1397,38 +1398,18 @@ def players_advanced():
         seasons = request.args["season"].split(" ")
 
     if players is not None:
-        gp = (
-            playerbygamestats.query.with_entities(
-                playerbygamestats.player_id,
-                playerbygamestats.season,
-                func.count().label("gp"),
-            )
-            .group_by(playerbygamestats.player_id, playerbygamestats.season)
-            .filter(
-                (playerbygamestats.player_id.in_(players))
-                & (playerbygamestats.season.in_(seasons))
-            )
-            .subquery()
-        )
 
         data = (
             player_advanced.query.join(
                 player_details, player_details.player_id == player_advanced.player_id
             )
-            .join(
-                gp,
-                and_(
-                    gp.c.player_id == player_advanced.player_id,
-                    gp.c.season == player_advanced.min_season,
-                ),
-            )
             .with_entities(
-                player_details.display_first_last,
+                player_advanced.player_name,
                 player_advanced.min_season.label("season"),
                 player_advanced.player_id,
                 player_details.position,
                 player_advanced.team_abbrev,
-                gp.c.gp,
+                player_advanced.gp,
                 func.round(cast(player_advanced.efg_percent * 100, Numeric), 1).label(
                     "efg_percentage"
                 ),
@@ -1470,35 +1451,18 @@ def players_advanced():
             .all()
         )
     else:
-        gp = (
-            playerbygamestats.query.with_entities(
-                playerbygamestats.player_id,
-                playerbygamestats.season,
-                func.count().label("gp"),
-            )
-            .group_by(playerbygamestats.player_id, playerbygamestats.season)
-            .filter((playerbygamestats.season.in_(seasons)))
-            .subquery()
-        )
 
         data = (
             player_advanced.query.join(
                 player_details, player_details.player_id == player_advanced.player_id
             )
-            .join(
-                gp,
-                and_(
-                    gp.c.player_id == player_advanced.player_id,
-                    gp.c.season == player_advanced.min_season,
-                ),
-            )
             .with_entities(
-                player_details.display_first_last,
+                player_advanced.player_name,
                 player_advanced.min_season.label("season"),
                 player_advanced.player_id,
                 player_details.position,
                 player_advanced.team_abbrev,
-                gp.c.gp,
+                player_advanced.gp,
                 func.round(cast(player_advanced.efg_percent * 100, Numeric), 1).label(
                     "efg_percentage"
                 ),
@@ -1849,19 +1813,15 @@ def api_rapm_multi_seasons():
     return jsonify(data)
 
 
+# change this to player_details table so it doesn't have to filter and distinct
 @stats.route("players/distinct/", methods=["GET"])
 def api_all_players():
     """
     this endpoing returns all the distinct players for the select boxes
     """
-    data = (
-        playerbygamestats.query.with_entities(
-            playerbygamestats.player_id, playerbygamestats.player_name
-        )
-        .filter(playerbygamestats.toc > 0)
-        .distinct()
-        .all()
-    )
+    data = player_details.query.with_entities(
+        player_details.player_id, player_details.display_first_last
+    ).all()
     data.sort(key=lambda x: x[1])
 
     return jsonify(data)
