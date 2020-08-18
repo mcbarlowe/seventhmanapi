@@ -1405,104 +1405,52 @@ def players_advanced():
     if players is not None:
 
         data = (
-            player_advanced.query.join(
-                player_details, player_details.player_id == player_advanced.player_id
-            )
-            .with_entities(
-                player_advanced.player_name,
-                player_advanced.min_season.label("season"),
-                player_advanced.player_id,
-                player_details.position,
-                player_advanced.team_abbrev,
-                player_advanced.gp,
-                func.round(cast(player_advanced.efg_percent, Numeric), 1).label(
-                    "efg_percentage"
-                ),
-                func.round(cast(player_advanced.ts_percent, Numeric), 1).label(
-                    "true_shooting_percentage"
-                ),
-                func.round(cast(player_advanced.oreb_percent, Numeric), 1).label(
-                    "oreb_percentage"
-                ),
-                func.round(cast(player_advanced.dreb_percent, Numeric), 1).label(
-                    "dreb_percentage"
-                ),
-                func.round(cast(player_advanced.ast_percent, Numeric), 1).label(
-                    "ast_percentage"
-                ),
-                func.round(cast(player_advanced.stl_percent, Numeric), 1).label(
-                    "stl_percentage"
-                ),
-                func.round(cast(player_advanced.blk_percent, Numeric), 1).label(
-                    "blk_percentage"
-                ),
-                func.round(cast(player_advanced.tov_percent, Numeric), 1).label(
-                    "tov_percentage"
-                ),
-                func.round(cast(player_advanced.usg_percent, Numeric), 1).label(
-                    "usg_percentage"
-                ),
-                func.round(cast(player_advanced.off_rating, Numeric), 1).label(
-                    "off_rating"
-                ),
-                func.round(cast(player_advanced.def_rating, Numeric), 1).label(
-                    "def_rating"
-                ),
-            )
+            pa_stats_view.query.with_entities(
+                pa_stats_view.player_name,
+                pa_stats_view.min_season.label("season"),
+                pa_stats_view.player_id,
+                pa_stats_view.position,
+                pa_stats_view.team_abbrev,
+                pa_stats_view.gp,
+                pa_stats_view.efg_percent,
+                pa_stats_view.ts_percent,
+                pa_stats_view.oreb_percent,
+                pa_stats_view.dreb_percent,
+                pa_stats_view.ast_percent,
+                pa_stats_view.stl_percent,
+                pa_stats_view.blk_percent,
+                pa_stats_view.tov_percent,
+                pa_stats_view.usg_percent,
+                pa_stats_view.off_rating,
+                pa_stats_view.def_rating)
             .filter(
-                (player_advanced.player_id.in_(players))
-                & (player_advanced.min_season.in_(seasons))
+                (pa_stats_view.player_id.in_(players))
+                & (pa_stats_view.min_season.in_(seasons))
             )
             .all()
         )
     else:
-
         data = (
-            player_advanced.query.join(
-                player_details, player_details.player_id == player_advanced.player_id
+            pa_stats_view.query.with_entities(
+                pa_stats_view.player_name,
+                pa_stats_view.min_season.label("season"),
+                pa_stats_view.player_id,
+                pa_stats_view.position,
+                pa_stats_view.team_abbrev,
+                pa_stats_view.gp,
+                pa_stats_view.efg_percent,
+                pa_stats_view.ts_percent,
+                pa_stats_view.oreb_percent,
+                pa_stats_view.dreb_percent,
+                pa_stats_view.ast_percent,
+                pa_stats_view.stl_percent,
+                pa_stats_view.blk_percent,
+                pa_stats_view.tov_percent,
+                pa_stats_view.usg_percent,
+                pa_stats_view.off_rating,
+                pa_stats_view.def_rating)
+            .filter((pa_stats_view.min_season.in_(seasons))
             )
-            .with_entities(
-                player_advanced.player_name,
-                player_advanced.min_season.label("season"),
-                player_advanced.player_id,
-                player_details.position,
-                player_advanced.team_abbrev,
-                player_advanced.gp,
-                func.round(cast(player_advanced.efg_percent, Numeric), 1).label(
-                    "efg_percentage"
-                ),
-                func.round(cast(player_advanced.ts_percent, Numeric), 1).label(
-                    "true_shooting_percentage"
-                ),
-                func.round(cast(player_advanced.oreb_percent, Numeric), 1).label(
-                    "oreb_percentage"
-                ),
-                func.round(cast(player_advanced.dreb_percent, Numeric), 1).label(
-                    "dreb_percentage"
-                ),
-                func.round(cast(player_advanced.ast_percent, Numeric), 1).label(
-                    "ast_percentage"
-                ),
-                func.round(cast(player_advanced.stl_percent, Numeric), 1).label(
-                    "stl_percentage"
-                ),
-                func.round(cast(player_advanced.blk_percent, Numeric), 1).label(
-                    "blk_percentage"
-                ),
-                func.round(cast(player_advanced.tov_percent, Numeric), 1).label(
-                    "tov_percentage"
-                ),
-                func.round(cast(player_advanced.usg_percent, Numeric), 1).label(
-                    "usg_percentage"
-                ),
-                func.round(cast(player_advanced.off_rating, Numeric), 1).label(
-                    "off_rating"
-                ),
-                func.round(cast(player_advanced.def_rating, Numeric), 1).label(
-                    "def_rating"
-                ),
-            )
-            .filter((player_advanced.min_season.in_(seasons)))
             .all()
         )
 

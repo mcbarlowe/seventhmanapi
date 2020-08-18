@@ -400,7 +400,7 @@ class pa_stats_view(db.Model):
     materialized view for player advanced stats
     """
 
-    __tablename__ = "pa_stas_view"
+    __tablename__ = "pa_stats_view"
     __table_args__ = {"schema": "nba"}
     player_id = db.Column(db.Integer, primary_key=True, nullable=False)
     player_name = db.Column(db.String)
