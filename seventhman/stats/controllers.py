@@ -1410,10 +1410,10 @@ def players_advanced():
                 player_details.position,
                 player_advanced.team_abbrev,
                 player_advanced.gp,
-                func.round(cast(player_advanced.efg_percent * 100, Numeric), 1).label(
+                func.round(cast(player_advanced.efg_percent, Numeric), 1).label(
                     "efg_percentage"
                 ),
-                func.round(cast(player_advanced.ts_percent * 100, Numeric), 1).label(
+                func.round(cast(player_advanced.ts_percent, Numeric), 1).label(
                     "true_shooting_percentage"
                 ),
                 func.round(cast(player_advanced.oreb_percent, Numeric), 1).label(
@@ -1463,10 +1463,10 @@ def players_advanced():
                 player_details.position,
                 player_advanced.team_abbrev,
                 player_advanced.gp,
-                func.round(cast(player_advanced.efg_percent * 100, Numeric), 1).label(
+                func.round(cast(player_advanced.efg_percent, Numeric), 1).label(
                     "efg_percentage"
                 ),
-                func.round(cast(player_advanced.ts_percent * 100, Numeric), 1).label(
+                func.round(cast(player_advanced.ts_percent, Numeric), 1).label(
                     "true_shooting_percentage"
                 ),
                 func.round(cast(player_advanced.oreb_percent, Numeric), 1).label(
@@ -1789,9 +1789,9 @@ def api_all_seasons():
     this endpoing returns all the distinct seasons for the select boxes
     """
     data = (
-        playerbygamestats.query.with_entities(playerbygamestats.season)
+        teambygamestats.query.with_entities(teambygamestats.season)
         .distinct()
-        .order_by(playerbygamestats.season.desc())
+        .order_by(teambygamestats.season.desc())
         .all()
     )
 
