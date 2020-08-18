@@ -12,6 +12,11 @@ from seventhman.stats.models import (
     team_single_year_rapm,
     shot_locations,
     seasons,
+    player_single_rapm_view,
+    player_multi_rapm_view,
+    per_poss_stats,
+    per_game_stats,
+    pa_stats_view,
 )
 from sqlalchemy.sql import func
 from sqlalchemy.dialects.postgresql import aggregate_order_by
@@ -1522,93 +1527,43 @@ def player_one_year_rapm():
         seasons = request.args["season"].split(" ")
 
     if players is not None:
-        teams = (
-            playerbygamestats.query.with_entities(
-                playerbygamestats.season,
-                playerbygamestats.player_id,
-                func.count().label("gp"),
-                func.string_agg(
-                    playerbygamestats.team_abbrev.distinct(),
-                    aggregate_order_by(
-                        literal_column("'/'"), playerbygamestats.team_abbrev.desc()
-                    ),
-                ).label("teams"),
-            )
-            .group_by(playerbygamestats.player_id, playerbygamestats.season)
-            .filter(
-                (playerbygamestats.player_id.in_(players))
-                & (playerbygamestats.season.in_(seasons))
-            )
-            .subquery()
-        )
 
         data = (
-            player_single_year_rapm.query.join(
-                teams,
-                and_(
-                    teams.c.season == player_single_year_rapm.min_season,
-                    teams.c.player_id == player_single_year_rapm.player_id,
-                ),
-            )
-            .with_entities(
-                player_single_year_rapm.player_name,
-                player_single_year_rapm.player_id,
-                teams.c.teams,
-                teams.c.gp,
-                player_single_year_rapm.rapm,
-                player_single_year_rapm.rapm_off,
-                player_single_year_rapm.rapm_def,
-                player_single_year_rapm.rapm_off_rank,
-                player_single_year_rapm.rapm_def_rank,
-                player_single_year_rapm.rapm_rank,
-                player_single_year_rapm.min_season.label("season"),
+            player_single_rapm_view.query.with_entities(
+                player_single_rapm_view.player_name,
+                player_single_rapm_view.player_id,
+                player_single_rapm_view.teams,
+                player_single_rapm_view.gp,
+                player_single_rapm_view.rapm,
+                player_single_rapm_view.rapm_off,
+                player_single_rapm_view.rapm_def,
+                player_single_rapm_view.rapm_off_rank,
+                player_single_rapm_view.rapm_def_rank,
+                player_single_rapm_view.rapm_rank,
+                player_single_rapm_view.min_season.label("season"),
             )
             .filter(
-                (player_single_year_rapm.player_id.in_(players))
-                & (player_single_year_rapm.min_season.in_(seasons))
+                (player_single_rapm_view.player_id.in_(players))
+                & (player_single_rapm_view.min_season.in_(seasons))
             )
             .all()
         )
     else:
-        teams = (
-            playerbygamestats.query.with_entities(
-                playerbygamestats.season,
-                playerbygamestats.player_id,
-                func.count().label("gp"),
-                func.string_agg(
-                    playerbygamestats.team_abbrev.distinct(),
-                    aggregate_order_by(
-                        literal_column("'/'"), playerbygamestats.team_abbrev.desc()
-                    ),
-                ).label("teams"),
-            )
-            .group_by(playerbygamestats.player_id, playerbygamestats.season)
-            .filter((playerbygamestats.season.in_(seasons)))
-            .subquery()
-        )
-
         data = (
-            player_single_year_rapm.query.join(
-                teams,
-                and_(
-                    teams.c.season == player_single_year_rapm.min_season,
-                    teams.c.player_id == player_single_year_rapm.player_id,
-                ),
+            player_single_rapm_view.query.with_entities(
+                player_single_rapm_view.player_name,
+                player_single_rapm_view.player_id,
+                player_single_rapm_view.teams,
+                player_single_rapm_view.gp,
+                player_single_rapm_view.rapm,
+                player_single_rapm_view.rapm_off,
+                player_single_rapm_view.rapm_def,
+                player_single_rapm_view.rapm_off_rank,
+                player_single_rapm_view.rapm_def_rank,
+                player_single_rapm_view.rapm_rank,
+                player_single_rapm_view.min_season.label("season"),
             )
-            .with_entities(
-                player_single_year_rapm.player_name,
-                player_single_year_rapm.player_id,
-                teams.c.teams,
-                teams.c.gp,
-                player_single_year_rapm.rapm,
-                player_single_year_rapm.rapm_off,
-                player_single_year_rapm.rapm_def,
-                player_single_year_rapm.rapm_off_rank,
-                player_single_year_rapm.rapm_def_rank,
-                player_single_year_rapm.rapm_rank,
-                player_single_year_rapm.min_season.label("season"),
-            )
-            .filter((player_single_year_rapm.min_season.in_(seasons)))
+            .filter((player_single_rapm_view.min_season.in_(seasons)))
             .all()
         )
 
@@ -1675,96 +1630,47 @@ def player_three_year_rapm():
         min_season = request.args["min_season"].split(" ")
 
     if players is not None:
-        start = time.time()
-        teams = (
-            seasons.query.with_entities(
-                seasons.player_id, seasons.gp, seasons.teams, seasons.min_season
-            )
-            .filter(
-                (seasons.player_id.in_(players)) & (seasons.min_season.in_(min_season))
-            )
-            .subquery()
-        )
-        end = time.time()
-        print(f"Time to query seasons {end-start}")
 
-        start = time.time()
         data = (
-            player_multi_year_rapm.query.join(
-                teams,
-                and_(
-                    teams.c.player_id == player_multi_year_rapm.player_id,
-                    teams.c.min_season == player_multi_year_rapm.min_season,
-                ),
-            )
-            .with_entities(
-                player_multi_year_rapm.player_name,
-                teams.c.teams,
-                teams.c.gp,
-                player_multi_year_rapm.rapm,
-                player_multi_year_rapm.rapm_off,
-                player_multi_year_rapm.rapm_def,
-                player_multi_year_rapm.rapm_off_rank,
-                player_multi_year_rapm.rapm_def_rank,
-                player_multi_year_rapm.rapm_rank,
-                player_multi_year_rapm.seasons.label("season"),
+            player_multi_rapm_view.query.with_entities(
+                player_multi_rapm_view.player_name,
+                player_multi_rapm_view.player_id,
+                player_multi_rapm_view.teams,
+                player_multi_rapm_view.gp,
+                player_multi_rapm_view.rapm,
+                player_multi_rapm_view.rapm_off,
+                player_multi_rapm_view.rapm_def,
+                player_multi_rapm_view.rapm_off_rank,
+                player_multi_rapm_view.rapm_def_rank,
+                player_multi_rapm_view.rapm_rank,
+                player_multi_rapm_view.min_season.label("season"),
             )
             .filter(
-                (player_multi_year_rapm.player_id.in_(players))
-                & (player_multi_year_rapm.min_season.in_(min_season))
+                (player_multi_rapm_view.player_id.in_(players))
+                & (player_multi_rapm_view.min_season.in_(seasons))
             )
             .all()
         )
-        end = time.time()
-        print(f"Time to query rapm {end-start}")
-
-        start = time.time()
-        d = jsonify(data)
-        end = time.time()
-        print(f"Time to jsonify rapm {end-start}")
-
     else:
-        start = time.time()
-        teams = (
-            seasons.query.with_entities(
-                seasons.player_id, seasons.gp, seasons.teams, seasons.min_season
-            )
-            .filter((seasons.min_season.in_(min_season)))
-            .subquery()
-        )
-        end = time.time()
-        print(f"Time to query seasons {end-start}")
-        start = time.time()
         data = (
-            player_multi_year_rapm.query.join(
-                teams,
-                and_(
-                    teams.c.player_id == player_multi_year_rapm.player_id,
-                    teams.c.min_season == player_multi_year_rapm.min_season,
-                ),
+            player_multi_rapm_view.query.with_entities(
+                player_multi_rapm_view.player_name,
+                player_multi_rapm_view.player_id,
+                player_multi_rapm_view.teams,
+                player_multi_rapm_view.gp,
+                player_multi_rapm_view.rapm,
+                player_multi_rapm_view.rapm_off,
+                player_multi_rapm_view.rapm_def,
+                player_multi_rapm_view.rapm_off_rank,
+                player_multi_rapm_view.rapm_def_rank,
+                player_multi_rapm_view.rapm_rank,
+                player_multi_rapm_view.min_season.label("season"),
             )
-            .with_entities(
-                player_multi_year_rapm.player_name,
-                teams.c.teams,
-                teams.c.gp,
-                player_multi_year_rapm.rapm,
-                player_multi_year_rapm.rapm_off,
-                player_multi_year_rapm.rapm_def,
-                player_multi_year_rapm.rapm_off_rank,
-                player_multi_year_rapm.rapm_def_rank,
-                player_multi_year_rapm.rapm_rank,
-                player_multi_year_rapm.seasons.label("season"),
-            )
-            .filter((player_multi_year_rapm.min_season.in_(min_season)))
+            .filter((player_multi_rapm_view.min_season.in_(min_season)))
             .all()
         )
-        end = time.time()
-        print(f"Time to query rapm {end-start}")
 
-        start = time.time()
         d = jsonify(data)
-        end = time.time()
-        print(f"Time to jsonify rapm {end-start}")
 
     return d
 

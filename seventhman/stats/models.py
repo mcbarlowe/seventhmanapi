@@ -395,6 +395,121 @@ class seasons(db.Model):
     min_season = db.Column(db.Integer, primary_key=True)
 
 
+class pa_stats_view(db.Model):
+    """
+    materialized view for player advanced stats
+    """
+
+    __tablename__ = "pa_stas_view"
+    __table_args__ = {"schema": "nba"}
+    player_id = db.Column(db.Integer, primary_key=True, nullable=False)
+    player_name = db.Column(db.String)
+    team_abbrev = db.Column(db.String)
+    gp = db.Column(db.Integer)
+    position = db.Column(db.String)
+    off_rating = db.Column(db.Numeric)
+    def_rating = db.Column(db.Numeric)
+    efg_percent = db.Column(db.Numeric)
+    ts_percent = db.Column(db.Numeric)
+    oreb_percent = db.Column(db.Numeric)
+    dreb_percent = db.Column(db.Numeric)
+    ast_percent = db.Column(db.Numeric)
+    blk_percent = db.Column(db.Numeric)
+    stl_percent = db.Column(db.Numeric)
+    tov_percent = db.Column(db.Numeric)
+    usg_percent = db.Column(db.Numeric)
+    min_season = db.Column(db.Integer, primary_key=True, nullable=False)
+    max_season = db.Column(db.Integer, primary_key=True, nullable=False)
+
+
+class per_game_stats(db.Model):
+    __tablename__ = "per_game_stats"
+    __table_args__ = {"schema": "nba"}
+    player_name = db.Column(db.String, primary_key=True)
+    player_id = db.Column(db.Integer, primary_key=True, nullable=False)
+    position = db.Column(db.String, primary_key=True)
+    season = db.Column(db.Integer, primary_key=True, nullable=False)
+    teams = db.Column(db.String, primary_key=True)
+    mins = db.Column(db.Numeric)
+    fgm = db.Column(db.Integer)
+    fga = db.Column(db.Integer)
+    tpm = db.Column(db.Integer)
+    tpa = db.Column(db.Integer)
+    ftm = db.Column(db.Integer)
+    fta = db.Column(db.Integer)
+    oreb = db.Column(db.Integer)
+    dreb = db.Column(db.Integer)
+    ast = db.Column(db.Integer)
+    tov = db.Column(db.Integer)
+    blk = db.Column(db.Integer)
+    stl = db.Column(db.Integer)
+    pf = db.Column(db.Integer)
+    points = db.Column(db.Integer)
+    plus_minus = db.Column(db.Integer)
+
+
+class per_poss_stats(db.Model):
+    __tablename__ = "per_poss_stats"
+    __table_args__ = {"schema": "nba"}
+    player_name = db.Column(db.String, primary_key=True)
+    player_id = db.Column(db.Integer, primary_key=True, nullable=False)
+    position = db.Column(db.String, primary_key=True)
+    season = db.Column(db.Integer, primary_key=True, nullable=False)
+    teams = db.Column(db.String, primary_key=True)
+    mins = db.Column(db.Numeric)
+    fgm = db.Column(db.Integer)
+    fga = db.Column(db.Integer)
+    tpm = db.Column(db.Integer)
+    tpa = db.Column(db.Integer)
+    ftm = db.Column(db.Integer)
+    fta = db.Column(db.Integer)
+    oreb = db.Column(db.Integer)
+    dreb = db.Column(db.Integer)
+    ast = db.Column(db.Integer)
+    tov = db.Column(db.Integer)
+    blk = db.Column(db.Integer)
+    stl = db.Column(db.Integer)
+    pf = db.Column(db.Integer)
+    points = db.Column(db.Integer)
+    plus_minus = db.Column(db.Integer)
+
+
+class player_single_rapm_view(db.Model):
+
+    __tablename__ = "player_single_rapm_view"
+    __table_args__ = {"schema": "nba"}
+    player_id = db.Column(db.Integer, primary_key=True, nullable=False)
+    rapm_off = db.Column(db.Numeric)
+    rapm_def = db.Column(db.Numeric)
+    rapm = db.Column(db.Numeric)
+    rapm_rank = db.Column(db.Integer)
+    rapm_off_rank = db.Column(db.Integer)
+    rapm_def_rank = db.Column(db.Integer)
+    player_name = db.Column(db.String)
+    min_season = db.Column(db.Integer, primary_key=True, nullable=False)
+    max_season = db.Column(db.Integer)
+    gp = db.Column(db.Integer)
+    teams = db.Column(db.String)
+
+
+class player_multi_rapm_view(db.Model):
+
+    __tablename__ = "player_multi_rapm_view"
+    __table_args__ = {"schema": "nba"}
+    player_id = db.Column(db.Integer, primary_key=True, nullable=False)
+    rapm_off = db.Column(db.Numeric)
+    rapm_def = db.Column(db.Numeric)
+    rapm = db.Column(db.Numeric)
+    rapm_rank = db.Column(db.Integer)
+    rapm_off_rank = db.Column(db.Integer)
+    rapm_def_rank = db.Column(db.Integer)
+    player_name = db.Column(db.String)
+    min_season = db.Column(db.Integer, primary_key=True, nullable=False)
+    max_season = db.Column(db.Integer)
+    gp = db.Column(db.Integer)
+    teams = db.Column(db.String)
+
+
 def main():
     pass
 
