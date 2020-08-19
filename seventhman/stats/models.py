@@ -431,6 +431,7 @@ class per_game_stats(db.Model):
     season = db.Column(db.Integer, primary_key=True, nullable=False)
     teams = db.Column(db.String, primary_key=True)
     mins = db.Column(db.Numeric)
+    gp = db.Column(db.Integer)
     fgm = db.Column(db.Integer)
     fga = db.Column(db.Integer)
     tpm = db.Column(db.Integer)
@@ -456,6 +457,7 @@ class per_poss_stats(db.Model):
     position = db.Column(db.String, primary_key=True)
     season = db.Column(db.Integer, primary_key=True, nullable=False)
     teams = db.Column(db.String, primary_key=True)
+    gp = db.Column(db.Integer)
     mins = db.Column(db.Numeric)
     fgm = db.Column(db.Integer)
     fga = db.Column(db.Integer)
@@ -470,7 +472,6 @@ class per_poss_stats(db.Model):
     blk = db.Column(db.Integer)
     stl = db.Column(db.Integer)
     points = db.Column(db.Integer)
-    plus_minus = db.Column(db.Integer)
 
 
 class player_single_rapm_view(db.Model):

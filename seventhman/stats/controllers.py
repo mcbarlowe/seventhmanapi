@@ -95,6 +95,7 @@ def api_players():
                     per_game_stats.position,
                     per_game_stats.season,
                     per_game_stats.teams,
+                    per_game_stats.gp,
                     per_game_stats.mins,
                     per_game_stats.fgm,
                     per_game_stats.fga,
@@ -194,6 +195,7 @@ def api_players():
                     per_game_stats.position,
                     per_game_stats.season,
                     per_game_stats.teams,
+                    per_game_stats.gp,
                     per_game_stats.mins,
                     per_game_stats.fgm,
                     per_game_stats.fga,
@@ -406,6 +408,7 @@ def api_players_possession():
                     per_poss_stats.position,
                     per_poss_stats.season,
                     per_poss_stats.teams,
+                    per_poss_stats.gp,
                     per_poss_stats.mins,
                     per_poss_stats.fgm,
                     per_poss_stats.fga,
@@ -579,6 +582,7 @@ def api_players_possession():
                     per_poss_stats.position,
                     per_poss_stats.season,
                     per_poss_stats.teams,
+                    per_poss_stats.gp,
                     per_poss_stats.mins,
                     per_poss_stats.fgm,
                     per_poss_stats.fga,
@@ -1198,8 +1202,12 @@ def players_advanced():
                 pa_stats_view.blk_percent,
                 pa_stats_view.tov_percent,
                 pa_stats_view.usg_percent,
-                pa_stats_view.off_rating,
-                pa_stats_view.def_rating,
+                func.round(cast(pa_stats_view.off_rating, Numeric), 1).label(
+                    "off_rating"
+                ),
+                func.round(cast(pa_stats_view.def_rating, Numeric), 1).label(
+                    "def_rating"
+                ),
             )
             .filter(
                 (pa_stats_view.player_id.in_(players))
@@ -1225,8 +1233,12 @@ def players_advanced():
                 pa_stats_view.blk_percent,
                 pa_stats_view.tov_percent,
                 pa_stats_view.usg_percent,
-                pa_stats_view.off_rating,
-                pa_stats_view.def_rating,
+                func.round(cast(pa_stats_view.off_rating, Numeric), 1).label(
+                    "off_rating"
+                ),
+                func.round(cast(pa_stats_view.def_rating, Numeric), 1).label(
+                    "def_rating"
+                ),
             )
             .filter((pa_stats_view.min_season.in_(seasons)))
             .all()
