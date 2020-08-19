@@ -510,6 +510,23 @@ class player_multi_rapm_view(db.Model):
     teams = db.Column(db.String)
 
 
+class shot_locations_view(db.Model):
+    __tablename__ = "shot_locations_view"
+    __table_args__ = {"schema": "nba"}
+    player_id = db.Column(db.Integer, primary_key=True, nullable=False)
+    player_name = db.Column(db.String)
+    team_id = db.Column(db.Integer, primary_key=True, nullable=False)
+    season = db.Column(db.Integer, primary_key=True, nullable=False)
+    x = db.Column(db.Integer)
+    y = db.Column(db.Integer)
+    lg_made = db.Column(db.Integer)
+    lg_attempted = db.Column(db.Integer)
+    lg_x = db.Column(db.Integer)
+    lg_y = db.Column(db.Integer)
+    made = db.Column(db.Integer)
+    attempted = db.Column(db.Integer)
+
+
 def main():
     pass
 

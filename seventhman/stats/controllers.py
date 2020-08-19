@@ -17,6 +17,7 @@ from seventhman.stats.models import (
     per_poss_stats,
     per_game_stats,
     pa_stats_view,
+    shot_locations_view,
 )
 from sqlalchemy.sql import func
 from sqlalchemy.dialects.postgresql import aggregate_order_by
@@ -294,12 +295,7 @@ def api_player_shot_locations():
     if request.args.get("player", "") == "" and request.args.get("team", "") == "":
         players = ["201939"]
     elif request.args.get("player", "") == "" and request.args.get("team", "") != "":
-        players = (
-            playerbygamestats.query.with_entities(playerbygamestats.player_id)
-            .filter((playerbygamestats.toc > 0))
-            .distinct()
-            .all()
-        )
+        players = None
     else:
         players = request.args["player"].split(" ")
     # parse seasons
@@ -312,65 +308,43 @@ def api_player_shot_locations():
     else:
         teams = request.args["team"].split(" ")
 
-    lg_avg = (
-        shot_locations.query.join(
-            teambygamestats,
-            and_(
-                shot_locations.team_id == teambygamestats.team_id,
-                shot_locations.game_id == teambygamestats.game_id,
-            ),
+    if players is not None:
+        data = (
+            shot_locations_view.query.with_entities(
+                shot_locations_view.x,
+                shot_locations_view.y,
+                shot_locations_view.lg_made,
+                shot_locations_view.lg_attempted,
+                shot_locations_view.lg_x,
+                shot_locations_view.lg_y,
+                shot_locations_view.made,
+                shot_locations_view.attempted,
+            )
+            .filter(
+                (shot_locations_view.player_id.in_(players))
+                & (shot_locations_view.season.in_(seasons))
+                & (shot_locations_view.team_id.in_(teams))
+            )
+            .all()
         )
-        .with_entities(
-            shot_locations.loc_x.label("lg_x"),
-            shot_locations.loc_y.label("lg_y"),
-            func.sum(shot_locations.shot_made_flag).label("lg_made"),
-            func.count(shot_locations.shot_made_flag).label("lg_attempted"),
+    else:
+        data = (
+            shot_locations_view.query.with_entities(
+                shot_locations_view.x,
+                shot_locations_view.y,
+                shot_locations_view.lg_made,
+                shot_locations_view.lg_attempted,
+                shot_locations_view.lg_x,
+                shot_locations_view.lg_y,
+                shot_locations_view.made,
+                shot_locations_view.attempted,
+            )
+            .filter(
+                (shot_locations_view.season.in_(seasons))
+                & (shot_locations_view.team_id.in_(teams))
+            )
+            .all()
         )
-        .group_by(shot_locations.loc_x, shot_locations.loc_y)
-        .filter(teambygamestats.season.in_(seasons))
-        .subquery()
-    )
-
-    data = (
-        shot_locations.query.join(
-            teambygamestats,
-            and_(
-                shot_locations.team_id == teambygamestats.team_id,
-                shot_locations.game_id == teambygamestats.game_id,
-            ),
-        )
-        .join(
-            lg_avg,
-            and_(
-                lg_avg.c.lg_x == shot_locations.loc_x,
-                lg_avg.c.lg_y == shot_locations.loc_y,
-            ),
-        )
-        .with_entities(
-            shot_locations.loc_x.label("x"),
-            shot_locations.loc_y.label("y"),
-            lg_avg.c.lg_made,
-            lg_avg.c.lg_attempted,
-            lg_avg.c.lg_x,
-            lg_avg.c.lg_y,
-            func.sum(shot_locations.shot_made_flag).label("made"),
-            func.count(shot_locations.shot_made_flag).label("attempted"),
-        )
-        .group_by(
-            shot_locations.loc_x,
-            shot_locations.loc_y,
-            lg_avg.c.lg_made,
-            lg_avg.c.lg_attempted,
-            lg_avg.c.lg_x,
-            lg_avg.c.lg_y,
-        )
-        .filter(
-            (shot_locations.player_id.in_(players))
-            & (teambygamestats.season.in_(seasons))
-            & (shot_locations.team_id.in_(teams))
-        )
-        .all()
-    )
     return jsonify(data)
 
 
