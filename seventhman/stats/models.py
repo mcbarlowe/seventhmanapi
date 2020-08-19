@@ -469,7 +469,6 @@ class per_poss_stats(db.Model):
     tov = db.Column(db.Integer)
     blk = db.Column(db.Integer)
     stl = db.Column(db.Integer)
-    pf = db.Column(db.Integer)
     points = db.Column(db.Integer)
     plus_minus = db.Column(db.Integer)
 

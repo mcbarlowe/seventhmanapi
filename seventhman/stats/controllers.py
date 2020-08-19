@@ -87,56 +87,35 @@ def api_players():
         teams = request.args["team"].split(" ")
 
     if players is not None:
-        if request.args.get("agg", "no") == "no":
+        if request.args.get("agg", "no") == "no" and teams == current_team_ids:
             data = (
-                playerbygamestats.query.join(
-                    player_details,
-                    player_details.player_id == playerbygamestats.player_id,
-                )
-                .with_entities(
-                    playerbygamestats.player_name,
-                    playerbygamestats.season,
-                    playerbygamestats.player_id,
-                    player_details.position,
-                    func.string_agg(
-                        playerbygamestats.team_abbrev.distinct(),
-                        aggregate_order_by(
-                            literal_column("'/'"), playerbygamestats.team_abbrev.desc()
-                        ),
-                    ).label("teams"),
-                    func.count(playerbygamestats.player_id).label("gp"),
-                    func.round(
-                        func.avg(cast(playerbygamestats.toc, Numeric)) / 60, 1
-                    ).label("mins"),
-                    func.round(func.avg(playerbygamestats.fgm), 1).label("fgm"),
-                    func.round(func.avg(playerbygamestats.fga), 1).label("fga"),
-                    func.round(func.avg(playerbygamestats.tpm), 1).label("tpm"),
-                    func.round(func.avg(playerbygamestats.tpa), 1).label("tpa"),
-                    func.round(func.avg(playerbygamestats.ftm), 1).label("ftm"),
-                    func.round(func.avg(playerbygamestats.fta), 1).label("fta"),
-                    func.round(func.avg(playerbygamestats.oreb), 1).label("oreb"),
-                    func.round(func.avg(playerbygamestats.dreb), 1).label("dreb"),
-                    func.round(func.avg(playerbygamestats.ast), 1).label("ast"),
-                    func.round(func.avg(playerbygamestats.tov), 1).label("tov"),
-                    func.round(func.avg(playerbygamestats.stl), 1).label("stl"),
-                    func.round(func.avg(playerbygamestats.blk), 1).label("blk"),
-                    func.round(func.avg(playerbygamestats.pf), 1).label("pf"),
-                    func.round(func.avg(playerbygamestats.points), 1).label("points"),
-                    func.round(func.avg(playerbygamestats.plus_minus), 1).label(
-                        "plus_minus"
-                    ),
-                )
-                .group_by(
-                    playerbygamestats.player_name,
-                    player_details.position,
-                    playerbygamestats.player_id,
-                    playerbygamestats.season,
+                per_game_stats.query.with_entities(
+                    per_game_stats.player_name,
+                    per_game_stats.player_id,
+                    per_game_stats.position,
+                    per_game_stats.season,
+                    per_game_stats.teams,
+                    per_game_stats.mins,
+                    per_game_stats.fgm,
+                    per_game_stats.fga,
+                    per_game_stats.tpm,
+                    per_game_stats.tpa,
+                    per_game_stats.ftm,
+                    per_game_stats.fta,
+                    per_game_stats.oreb,
+                    per_game_stats.dreb,
+                    per_game_stats.ast,
+                    per_game_stats.tov,
+                    per_game_stats.blk,
+                    per_game_stats.stl,
+                    per_game_stats.pf,
+                    per_game_stats.points,
+                    per_game_stats.plus_minus,
                 )
                 .filter(
-                    (playerbygamestats.toc >= toc)
-                    & (playerbygamestats.player_id.in_(players))
-                    & (playerbygamestats.season.in_(seasons))
-                    & (playerbygamestats.team_id.in_(teams))
+                    (per_game_stats.mins >= toc)
+                    & (per_game_stats.player_id.in_(players))
+                    & (per_game_stats.season.in_(seasons))
                 )
                 .all()
             )
@@ -172,7 +151,9 @@ def api_players():
                         ),
                     ).label("teams"),
                     func.count(playerbygamestats.player_id).label("gp"),
-                    func.round(func.avg(playerbygamestats.toc) / 60, 1).label("mins"),
+                    func.round(
+                        cast(func.avg(playerbygamestats.toc) / 60, Numeric), 1
+                    ).label("mins"),
                     func.round(func.avg(playerbygamestats.fgm), 1).label("fgm"),
                     func.round(func.avg(playerbygamestats.fga), 1).label("fga"),
                     func.round(func.avg(playerbygamestats.tpm), 1).label("tpm"),
@@ -205,55 +186,33 @@ def api_players():
                 .all()
             )
     else:
-        if request.args.get("agg", "no") == "no":
+        if request.args.get("agg", "no") == "no" and teams == current_team_ids:
             data = (
-                playerbygamestats.query.join(
-                    player_details,
-                    player_details.player_id == playerbygamestats.player_id,
-                )
-                .with_entities(
-                    playerbygamestats.player_name,
-                    playerbygamestats.season,
-                    playerbygamestats.player_id,
-                    player_details.position,
-                    func.string_agg(
-                        playerbygamestats.team_abbrev.distinct(),
-                        aggregate_order_by(
-                            literal_column("'/'"), playerbygamestats.team_abbrev.desc()
-                        ),
-                    ).label("teams"),
-                    func.count(playerbygamestats.player_id).label("gp"),
-                    func.round(
-                        func.avg(cast(playerbygamestats.toc, Numeric)) / 60, 1
-                    ).label("mins"),
-                    func.round(func.avg(playerbygamestats.fgm), 1).label("fgm"),
-                    func.round(func.avg(playerbygamestats.fga), 1).label("fga"),
-                    func.round(func.avg(playerbygamestats.tpm), 1).label("tpm"),
-                    func.round(func.avg(playerbygamestats.tpa), 1).label("tpa"),
-                    func.round(func.avg(playerbygamestats.ftm), 1).label("ftm"),
-                    func.round(func.avg(playerbygamestats.fta), 1).label("fta"),
-                    func.round(func.avg(playerbygamestats.oreb), 1).label("oreb"),
-                    func.round(func.avg(playerbygamestats.dreb), 1).label("dreb"),
-                    func.round(func.avg(playerbygamestats.ast), 1).label("ast"),
-                    func.round(func.avg(playerbygamestats.tov), 1).label("tov"),
-                    func.round(func.avg(playerbygamestats.stl), 1).label("stl"),
-                    func.round(func.avg(playerbygamestats.blk), 1).label("blk"),
-                    func.round(func.avg(playerbygamestats.pf), 1).label("pf"),
-                    func.round(func.avg(playerbygamestats.points), 1).label("points"),
-                    func.round(func.avg(playerbygamestats.plus_minus), 1).label(
-                        "plus_minus"
-                    ),
-                )
-                .group_by(
-                    playerbygamestats.player_name,
-                    player_details.position,
-                    playerbygamestats.player_id,
-                    playerbygamestats.season,
+                per_game_stats.query.with_entities(
+                    per_game_stats.player_name,
+                    per_game_stats.player_id,
+                    per_game_stats.position,
+                    per_game_stats.season,
+                    per_game_stats.teams,
+                    per_game_stats.mins,
+                    per_game_stats.fgm,
+                    per_game_stats.fga,
+                    per_game_stats.tpm,
+                    per_game_stats.tpa,
+                    per_game_stats.ftm,
+                    per_game_stats.fta,
+                    per_game_stats.oreb,
+                    per_game_stats.dreb,
+                    per_game_stats.ast,
+                    per_game_stats.tov,
+                    per_game_stats.blk,
+                    per_game_stats.stl,
+                    per_game_stats.pf,
+                    per_game_stats.points,
+                    per_game_stats.plus_minus,
                 )
                 .filter(
-                    (playerbygamestats.toc >= toc)
-                    & (playerbygamestats.season.in_(seasons))
-                    & (playerbygamestats.team_id.in_(teams))
+                    (per_game_stats.mins >= toc) & (per_game_stats.season.in_(seasons))
                 )
                 .all()
             )
@@ -289,7 +248,9 @@ def api_players():
                         ),
                     ).label("teams"),
                     func.count(playerbygamestats.player_id).label("gp"),
-                    func.round(func.avg(playerbygamestats.toc) / 60, 1).label("mins"),
+                    func.round(
+                        cast(func.avg(playerbygamestats.toc) / 60, Numeric), 1
+                    ).label("mins"),
                     func.round(func.avg(playerbygamestats.fgm), 1).label("fgm"),
                     func.round(func.avg(playerbygamestats.fga), 1).label("fga"),
                     func.round(func.avg(playerbygamestats.tpm), 1).label("tpm"),
@@ -430,134 +391,40 @@ def api_players_possession():
     if request.args.get("toc", "") == "":
         toc = 1
     else:
-        toc = float(request.args["toc"]) * 60
+        toc = float(request.args["toc"])
     # parse teams
     if request.args.get("team", "") == "":
         teams = current_team_ids
     else:
         teams = request.args["team"].split(" ")
     if players is not None:
-        if request.args.get("agg", "no") == "no":
+        if request.args.get("agg", "no") == "no" and teams == current_team_ids:
             data = (
-                playerbygamestats.query.join(
-                    player_details,
-                    player_details.player_id == playerbygamestats.player_id,
-                )
-                .with_entities(
-                    playerbygamestats.player_name,
-                    playerbygamestats.season,
-                    playerbygamestats.player_id,
-                    player_details.position,
-                    func.string_agg(
-                        playerbygamestats.team_abbrev.distinct(),
-                        aggregate_order_by(
-                            literal_column("'/'"), playerbygamestats.team_abbrev.desc()
-                        ),
-                    ).label("teams"),
-                    func.count(playerbygamestats.player_id).label("gp"),
-                    func.round(
-                        func.avg(cast(playerbygamestats.toc, Numeric)) / 60, 1
-                    ).label("mins"),
-                    func.round(
-                        (
-                            func.sum(cast(playerbygamestats.fgm, Numeric))
-                            / func.sum(cast(playerbygamestats.possessions, Numeric))
-                            * 100
-                        ),
-                        1,
-                    ).label("fgm"),
-                    func.round(
-                        (
-                            func.sum(cast(playerbygamestats.fga, Numeric))
-                            / func.sum(cast(playerbygamestats.possessions, Numeric))
-                            * 100
-                        ),
-                        1,
-                    ).label("fga"),
-                    func.round(
-                        func.sum(cast(playerbygamestats.tpm, Numeric))
-                        / func.sum(cast(playerbygamestats.possessions, Numeric))
-                        * 100,
-                        1,
-                    ).label("tpm"),
-                    func.round(
-                        func.sum(cast(playerbygamestats.tpa, Numeric))
-                        / func.sum(cast(playerbygamestats.possessions, Numeric))
-                        * 100,
-                        1,
-                    ).label("tpa"),
-                    func.round(
-                        func.sum(cast(playerbygamestats.ftm, Numeric))
-                        / func.sum(cast(playerbygamestats.possessions, Numeric))
-                        * 100,
-                        1,
-                    ).label("ftm"),
-                    func.round(
-                        func.sum(cast(playerbygamestats.fta, Numeric))
-                        / func.sum(cast(playerbygamestats.possessions, Numeric))
-                        * 100,
-                        1,
-                    ).label("fta"),
-                    func.round(
-                        func.sum(cast(playerbygamestats.oreb, Numeric))
-                        / func.sum(cast(playerbygamestats.possessions, Numeric))
-                        * 100,
-                        1,
-                    ).label("oreb"),
-                    func.round(
-                        func.sum(cast(playerbygamestats.dreb, Numeric))
-                        / func.sum(cast(playerbygamestats.possessions, Numeric))
-                        * 100,
-                        1,
-                    ).label("dreb"),
-                    func.round(
-                        func.sum(cast(playerbygamestats.ast, Numeric))
-                        / func.sum(cast(playerbygamestats.possessions, Numeric))
-                        * 100,
-                        1,
-                    ).label("ast"),
-                    func.round(
-                        func.sum(cast(playerbygamestats.tov, Numeric))
-                        / func.sum(cast(playerbygamestats.possessions, Numeric))
-                        * 100,
-                        1,
-                    ).label("tov"),
-                    func.round(
-                        func.sum(cast(playerbygamestats.stl, Numeric))
-                        / func.sum(cast(playerbygamestats.possessions, Numeric))
-                        * 100,
-                        1,
-                    ).label("stl"),
-                    func.round(
-                        func.sum(cast(playerbygamestats.blk, Numeric))
-                        / func.sum(cast(playerbygamestats.possessions, Numeric))
-                        * 100,
-                        1,
-                    ).label("blk"),
-                    func.round(
-                        func.sum(cast(playerbygamestats.pf, Numeric))
-                        / func.sum(cast(playerbygamestats.possessions, Numeric))
-                        * 100,
-                        1,
-                    ).label("pf"),
-                    func.round(
-                        func.sum(cast(playerbygamestats.points, Numeric))
-                        / func.sum(cast(playerbygamestats.possessions, Numeric))
-                        * 100,
-                        1,
-                    ).label("points"),
-                )
-                .group_by(
-                    playerbygamestats.player_name,
-                    player_details.position,
-                    playerbygamestats.player_id,
-                    playerbygamestats.season,
+                per_poss_stats.query.with_entities(
+                    per_poss_stats.player_name,
+                    per_poss_stats.player_id,
+                    per_poss_stats.position,
+                    per_poss_stats.season,
+                    per_poss_stats.teams,
+                    per_poss_stats.mins,
+                    per_poss_stats.fgm,
+                    per_poss_stats.fga,
+                    per_poss_stats.tpm,
+                    per_poss_stats.tpa,
+                    per_poss_stats.ftm,
+                    per_poss_stats.fta,
+                    per_poss_stats.oreb,
+                    per_poss_stats.dreb,
+                    per_poss_stats.ast,
+                    per_poss_stats.tov,
+                    per_poss_stats.blk,
+                    per_poss_stats.stl,
+                    per_poss_stats.points,
                 )
                 .filter(
-                    (playerbygamestats.toc >= toc)
-                    & (playerbygamestats.player_id.in_(players))
-                    & (playerbygamestats.season.in_(seasons))
-                    & (playerbygamestats.team_id.in_(teams))
+                    (per_poss_stats.mins >= toc)
+                    & (per_poss_stats.player_id.in_(players))
+                    & (per_poss_stats.season.in_(seasons))
                 )
                 .all()
             )
@@ -593,7 +460,9 @@ def api_players_possession():
                         ),
                     ).label("teams"),
                     func.count(playerbygamestats.player_id).label("gp"),
-                    func.round(func.avg(playerbygamestats.toc) / 60, 1).label("mins"),
+                    func.round(
+                        cast(func.avg(playerbygamestats.toc) / 60, Numeric), 1
+                    ).label("mins"),
                     func.round(
                         (
                             func.sum(cast(playerbygamestats.fgm, Numeric))
@@ -694,7 +563,7 @@ def api_players_possession():
                     playerbygamestats.player_id,
                 )
                 .filter(
-                    (playerbygamestats.toc >= toc)
+                    (playerbygamestats.toc >= toc * 60)
                     & (playerbygamestats.player_id.in_(players))
                     & (playerbygamestats.season.in_(seasons))
                     & (playerbygamestats.team_id.in_(teams))
@@ -702,129 +571,35 @@ def api_players_possession():
                 .all()
             )
     else:
-        if request.args.get("agg", "no") == "no":
+        if request.args.get("agg", "no") == "no" and teams == current_team_ids:
             data = (
-                playerbygamestats.query.join(
-                    player_details,
-                    player_details.player_id == playerbygamestats.player_id,
-                )
-                .with_entities(
-                    playerbygamestats.player_name,
-                    playerbygamestats.season,
-                    playerbygamestats.player_id,
-                    player_details.position,
-                    func.string_agg(
-                        playerbygamestats.team_abbrev.distinct(),
-                        aggregate_order_by(
-                            literal_column("'/'"), playerbygamestats.team_abbrev.desc()
-                        ),
-                    ).label("teams"),
-                    func.count(playerbygamestats.player_id).label("gp"),
-                    func.round(
-                        func.avg(cast(playerbygamestats.toc, Numeric)) / 60, 1
-                    ).label("mins"),
-                    func.round(
-                        (
-                            func.sum(cast(playerbygamestats.fgm, Numeric))
-                            / func.sum(cast(playerbygamestats.possessions, Numeric))
-                            * 100
-                        ),
-                        1,
-                    ).label("fgm"),
-                    func.round(
-                        (
-                            func.sum(cast(playerbygamestats.fga, Numeric))
-                            / func.sum(cast(playerbygamestats.possessions, Numeric))
-                            * 100
-                        ),
-                        1,
-                    ).label("fga"),
-                    func.round(
-                        func.sum(cast(playerbygamestats.tpm, Numeric))
-                        / func.sum(cast(playerbygamestats.possessions, Numeric))
-                        * 100,
-                        1,
-                    ).label("tpm"),
-                    func.round(
-                        func.sum(cast(playerbygamestats.tpa, Numeric))
-                        / func.sum(cast(playerbygamestats.possessions, Numeric))
-                        * 100,
-                        1,
-                    ).label("tpa"),
-                    func.round(
-                        func.sum(cast(playerbygamestats.ftm, Numeric))
-                        / func.sum(cast(playerbygamestats.possessions, Numeric))
-                        * 100,
-                        1,
-                    ).label("ftm"),
-                    func.round(
-                        func.sum(cast(playerbygamestats.fta, Numeric))
-                        / func.sum(cast(playerbygamestats.possessions, Numeric))
-                        * 100,
-                        1,
-                    ).label("fta"),
-                    func.round(
-                        func.sum(cast(playerbygamestats.oreb, Numeric))
-                        / func.sum(cast(playerbygamestats.possessions, Numeric))
-                        * 100,
-                        1,
-                    ).label("oreb"),
-                    func.round(
-                        func.sum(cast(playerbygamestats.dreb, Numeric))
-                        / func.sum(cast(playerbygamestats.possessions, Numeric))
-                        * 100,
-                        1,
-                    ).label("dreb"),
-                    func.round(
-                        func.sum(cast(playerbygamestats.ast, Numeric))
-                        / func.sum(cast(playerbygamestats.possessions, Numeric))
-                        * 100,
-                        1,
-                    ).label("ast"),
-                    func.round(
-                        func.sum(cast(playerbygamestats.tov, Numeric))
-                        / func.sum(cast(playerbygamestats.possessions, Numeric))
-                        * 100,
-                        1,
-                    ).label("tov"),
-                    func.round(
-                        func.sum(cast(playerbygamestats.stl, Numeric))
-                        / func.sum(cast(playerbygamestats.possessions, Numeric))
-                        * 100,
-                        1,
-                    ).label("stl"),
-                    func.round(
-                        func.sum(cast(playerbygamestats.blk, Numeric))
-                        / func.sum(cast(playerbygamestats.possessions, Numeric))
-                        * 100,
-                        1,
-                    ).label("blk"),
-                    func.round(
-                        func.sum(cast(playerbygamestats.pf, Numeric))
-                        / func.sum(cast(playerbygamestats.possessions, Numeric))
-                        * 100,
-                        1,
-                    ).label("pf"),
-                    func.round(
-                        func.sum(cast(playerbygamestats.points, Numeric))
-                        / func.sum(cast(playerbygamestats.possessions, Numeric))
-                        * 100,
-                        1,
-                    ).label("points"),
-                )
-                .group_by(
-                    playerbygamestats.player_name,
-                    player_details.position,
-                    playerbygamestats.player_id,
-                    playerbygamestats.season,
+                per_poss_stats.query.with_entities(
+                    per_poss_stats.player_name,
+                    per_poss_stats.player_id,
+                    per_poss_stats.position,
+                    per_poss_stats.season,
+                    per_poss_stats.teams,
+                    per_poss_stats.mins,
+                    per_poss_stats.fgm,
+                    per_poss_stats.fga,
+                    per_poss_stats.tpm,
+                    per_poss_stats.tpa,
+                    per_poss_stats.ftm,
+                    per_poss_stats.fta,
+                    per_poss_stats.oreb,
+                    per_poss_stats.dreb,
+                    per_poss_stats.ast,
+                    per_poss_stats.tov,
+                    per_poss_stats.blk,
+                    per_poss_stats.stl,
+                    per_poss_stats.points,
                 )
                 .filter(
-                    (playerbygamestats.toc >= toc)
-                    & (playerbygamestats.season.in_(seasons))
-                    & (playerbygamestats.team_id.in_(teams))
+                    (per_poss_stats.mins >= toc) & (per_poss_stats.season.in_(seasons))
                 )
                 .all()
             )
+
             return jsonify(data)
         else:
             data = (
@@ -857,7 +632,9 @@ def api_players_possession():
                         ),
                     ).label("teams"),
                     func.count(playerbygamestats.player_id).label("gp"),
-                    func.round(func.avg(playerbygamestats.toc) / 60, 1).label("mins"),
+                    func.round(
+                        cast(func.avg(playerbygamestats.toc) / 60, Numeric), 1
+                    ).label("mins"),
                     func.round(
                         (
                             func.sum(cast(playerbygamestats.fgm, Numeric))
@@ -958,7 +735,7 @@ def api_players_possession():
                     playerbygamestats.player_id,
                 )
                 .filter(
-                    (playerbygamestats.toc >= toc)
+                    (playerbygamestats.toc >= toc * 60)
                     & (playerbygamestats.season.in_(seasons))
                     & (playerbygamestats.team_id.in_(teams))
                 )
@@ -1422,7 +1199,8 @@ def players_advanced():
                 pa_stats_view.tov_percent,
                 pa_stats_view.usg_percent,
                 pa_stats_view.off_rating,
-                pa_stats_view.def_rating)
+                pa_stats_view.def_rating,
+            )
             .filter(
                 (pa_stats_view.player_id.in_(players))
                 & (pa_stats_view.min_season.in_(seasons))
@@ -1448,9 +1226,9 @@ def players_advanced():
                 pa_stats_view.tov_percent,
                 pa_stats_view.usg_percent,
                 pa_stats_view.off_rating,
-                pa_stats_view.def_rating)
-            .filter((pa_stats_view.min_season.in_(seasons))
+                pa_stats_view.def_rating,
             )
+            .filter((pa_stats_view.min_season.in_(seasons)))
             .all()
         )
 
