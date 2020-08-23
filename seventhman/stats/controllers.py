@@ -1359,7 +1359,7 @@ def player_three_year_rapm():
             )
             .filter(
                 (player_multi_rapm_view.player_id.in_(players))
-                & (player_multi_rapm_view.min_season.in_(seasons))
+                & (player_multi_rapm_view.min_season.in_(min_season))
             )
             .all()
         )
@@ -1382,7 +1382,7 @@ def player_three_year_rapm():
             .all()
         )
 
-        d = jsonify(data)
+    d = jsonify(data)
 
     return d
 
