@@ -24,7 +24,7 @@ from sqlalchemy.dialects.postgresql import aggregate_order_by
 from sqlalchemy import literal_column, case, cast, String, and_, Numeric
 
 stats = Blueprint("stats", __name__, url_prefix="/stats/api/v2/")
-current_season = [2020]
+current_season = [2021]
 min_rapm_season = [2018]
 current_team_ids = [
     1610612753,
@@ -1355,7 +1355,11 @@ def player_three_year_rapm():
                 player_multi_rapm_view.rapm_off_rank,
                 player_multi_rapm_view.rapm_def_rank,
                 player_multi_rapm_view.rapm_rank,
-                player_multi_rapm_view.min_season.label("season"),
+                func.concat(
+                    player_multi_rapm_view.min_season,
+                    "-",
+                    player_multi_rapm_view.max_season,
+                ).label("season"),
             )
             .filter(
                 (player_multi_rapm_view.player_id.in_(players))
@@ -1376,7 +1380,11 @@ def player_three_year_rapm():
                 player_multi_rapm_view.rapm_off_rank,
                 player_multi_rapm_view.rapm_def_rank,
                 player_multi_rapm_view.rapm_rank,
-                player_multi_rapm_view.min_season.label("season"),
+                func.concat(
+                    player_multi_rapm_view.min_season,
+                    "-",
+                    player_multi_rapm_view.max_season,
+                ).label("season"),
             )
             .filter((player_multi_rapm_view.min_season.in_(min_season)))
             .all()
