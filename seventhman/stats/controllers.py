@@ -4,14 +4,10 @@ from seventhman.stats.models import (
     playerbygamestats,
     team_details,
     teambygamestats,
-    player_single_year_rapm,
-    player_advanced,
     team_advanced,
     player_details,
     player_multi_year_rapm,
     team_single_year_rapm,
-    shot_locations,
-    seasons,
     player_single_rapm_view,
     player_multi_rapm_view,
     per_poss_stats,
@@ -21,7 +17,7 @@ from seventhman.stats.models import (
 )
 from sqlalchemy.sql import func
 from sqlalchemy.dialects.postgresql import aggregate_order_by
-from sqlalchemy import literal_column, case, cast, String, and_, Numeric
+from sqlalchemy import literal_column, case, cast, String, Numeric
 
 stats = Blueprint("stats", __name__, url_prefix="/stats/api/v2/")
 current_season = [2021]
@@ -1324,7 +1320,7 @@ def team_one_year_rapm():
 @stats.route("players/multirapm/", methods=["GET"])
 def player_three_year_rapm():
     """
-    endpoint for player single year rapm values
+    endpoint for player three year rapm values
     """
 
     # parse players
