@@ -21,7 +21,7 @@ from sqlalchemy import literal_column, case, cast, String, Numeric
 
 stats = Blueprint("stats", __name__, url_prefix="/stats/api/v2/")
 current_season = [2021]
-min_rapm_season = [2018]
+min_rapm_season = [2019]
 current_team_ids = [
     1610612753,
     1610612740,
@@ -1130,7 +1130,10 @@ def teams_advanced():
             func.round(cast(team_advanced.def_rating, Numeric), 1).label("def_rating"),
         )
         .filter(
-            (team_advanced.team_id.in_(teams)) & (team_advanced.min_season.in_(seasons))
+            (team_advanced.team_id.in_(teams))
+            & (team_advanced.min_season.in_(seasons))
+            & (team_advanced.def_rating != "Infinity")
+            & (team_advanced.off_rating != "Infinity")
         )
         .all()
     )
@@ -1182,6 +1185,8 @@ def players_advanced():
             .filter(
                 (pa_stats_view.player_id.in_(players))
                 & (pa_stats_view.min_season.in_(seasons))
+                & (pa_stats_view.def_rating != "Infinity")
+                & (pa_stats_view.off_rating != "Infinity")
             )
             .all()
         )
@@ -1210,7 +1215,11 @@ def players_advanced():
                     "def_rating"
                 ),
             )
-            .filter((pa_stats_view.min_season.in_(seasons)))
+            .filter(
+                (pa_stats_view.min_season.in_(seasons))
+                & (pa_stats_view.def_rating != "Infinity")
+                & (pa_stats_view.off_rating != "Infinity")
+            )
             .all()
         )
 
