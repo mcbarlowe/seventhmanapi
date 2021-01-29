@@ -1,5 +1,4 @@
-## We have updated to version 2.0! This means the API will return stats from seasons dating all the way back from 19992000
-
+# This API is no longer maintained or up for service sorry for the inconvienience
 # Seventhman.net API
 
 All endpoints will start with `https://stats.theseventhman.net/stats/api/v2/` an
